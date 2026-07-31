@@ -65,20 +65,62 @@ curl -s https://blbd-life.vercel.app/v4/blbd.js | grep -q "<expected string>"
 1. Edit the relevant file in `webflow/` (e.g. `members-page.html`).
 2. Commit + push (these files aren't served by the app — no Vercel deploy
    needed, but commit anyway so the repo stays the source of truth).
-3. Tell the user exactly what changed and ask them to re-paste the file's
-   full contents into the existing Embed element, then Publish. **This step
-   cannot be done by Claude** — no Webflow API can touch page content (see
-   CLAUDE.md). Don't imply otherwise or claim to have "added" something to a
-   live page without verifying it first.
-4. After they say it's done (or some time later), verify with curl using a
-   precise tag match, e.g.:
+3. If the Webflow MCP tools are available this session (see the next recipe),
+   the HtmlEmbed's content can be pushed directly — `data_element_settings_tool
+   > set_settings` on the Embed element, or `data_scripts_tool >
+   set_page_freeform_code` for footer/head code. Otherwise: tell the user
+   exactly what changed and ask them to re-paste the file's full contents
+   into the existing Embed element, then Publish.
+4. Verify with curl using a precise tag match, e.g.:
    ```bash
    curl -s -L https://blbd-2.webflow.io/members | grep -o '<nav class="blbd-mini-nav">'
    ```
-   An empty result means either it hasn't been pasted yet, or Webflow/browser
-   caching is showing something stale — say which you think it is rather
-   than guessing; a second curl a minute later usually resolves cache
-   ambiguity.
+   An empty result means either it hasn't been pasted/pushed yet, or
+   Webflow/browser caching is showing something stale — say which you think
+   it is rather than guessing; a second curl a minute later usually resolves
+   cache ambiguity. Remember the site has to be **published** (not just
+   edited in draft) before curl against the live domain will ever see it.
+
+## Edit the live Webflow Designer via the Webflow MCP server
+
+Only if the user has it connected this session — check with `ToolSearch`
+for tools like `data_pages_tool` / `data_element_tool` / `data_component_tool`
+(prefixed `mcp__<connection-id>__*`; the id is per-connection, don't hardcode
+it). If present, **call `webflow_guide_tool` first** — it returns the
+authoritative, versioned usage rules and is more reliable than remembering
+them here.
+
+Typical flow for "make this page match the rest of the site" tasks (e.g.
+inserting the shared navbar onto a bare Embed-only page):
+
+1. `data_sites_tool > list_sites` — get the site id (there are two sites this
+   project touches; confirm which one).
+2. `data_pages_tool > list_pages` — get the target page's id by slug.
+3. `data_component_tool > query_components` (keywords like `["nav"]`) —
+   find the *existing* shared component rather than rebuilding one by hand.
+4. `data_element_tool > get_all_elements` (depth 2 is usually enough) — see
+   what's actually on the page and get the exact element id to anchor against.
+5. `data_component_tool > insert_component_instance` (or
+   `data_component_builder`) with `creation_position: "before"` against the
+   existing content's element id — inserts the real component instance, not
+   a copy, so it never drifts from the rest of the site.
+6. Re-run `get_all_elements` to confirm the tree looks right. This step
+   doesn't need a live Designer session — it's a plain data read.
+7. `element_snapshot_tool` for a visual check **is** live-session-only — if
+   it fails with "Unable to connect to Webflow Designer," that's expected
+   when the user doesn't have the Designer open with the MCP companion
+   connected. The error includes a real connection link
+   (`https://<shortname>.design.webflow.com?app=...`) — hand it back to the
+   user as a markdown link rather than skipping the visual check silently.
+8. **Stop and ask before publishing.** `data_sites_tool > publish_site`
+   defaults to the whole site, not just the one page just edited — call this
+   out explicitly, since the user may not expect other draft changes to go
+   out too. Only Enterprise sites can scope a publish to one page
+   (`pageId` param).
+9. After confirmed + published, verify with curl the same way as any other
+   Webflow change (see the recipe above) — the MCP tools return "success"
+   for the draft-state write; a curl against the live domain is what proves
+   it's actually visible to a real visitor.
 
 ## Diagnose "a redirect/link goes to the wrong place"
 
@@ -138,14 +180,16 @@ vars as needed and redeploy.
 
 ## Before trying browser automation
 
+**Check for the Webflow MCP server first** (see "Edit the live Webflow
+Designer" above) — if it's connected, it's a better path than any of the
+below for actual Designer edits: headless, doesn't need a live browser tab,
+and edits real elements/components directly.
+
 1. **Never** use `mcp__Claude_Browser__*` on this project — confirmed to
    crash Claude Code, twice, by the user.
 2. `mcp__claude-in-chrome__*` is a different, separate tool (drives the
    user's real, already-logged-in Chrome) that was not connected as of last
-   check. Worth a single `tabs_context_mcp` call at the start of a session
-   that needs real Designer interaction, to see if it's since been set up —
-   if the extension isn't installed you'll get a clean "not connected"
-   message, not a crash. If it works, it's the only path to Claude driving
-   actual Designer UI clicks (adding attributes, duplicating elements) —
-   still worth trying cautiously (read-only action first) before relying on
-   it for real edits.
+   check. Lower priority now that the Webflow MCP server covers the main use
+   case, but still worth a `tabs_context_mcp` call if a task needs something
+   the Webflow MCP genuinely can't do (e.g. something requiring actual mouse/
+   keyboard interaction rather than a structured API call).

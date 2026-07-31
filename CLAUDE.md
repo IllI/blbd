@@ -102,37 +102,73 @@ of `CFG.loginPath`).
    comments is a reasonable next step if the design team hits real limits
    with widget-level CSS overrides.
 
-## What Claude cannot do — verified repeatedly this session, don't re-litigate
+## Editing the actual Webflow Designer — superseded, read this not the old advice
 
-- **No Webflow API can create a page, or create/modify a DOM element on a
-  page.** Confirmed three independent ways: the Data API's Pages resource is
-  read + metadata + a content-update endpoint that is *exclusively* for
-  secondary-locale translation (cannot create nodes, cannot add attributes);
-  the CLI (`webflow sites --help`) only has `list/get/domains/publish`;
-  Designer Extensions (the one mechanism that *can* script the canvas) only
-  run while a human has the Designer physically open.
+**Earlier in this project's life, real Designer editing (elements, attributes,
+components) was confirmed impossible from Claude Code** — the Data API's
+Pages resource had no element-creation endpoint, the CLI had no page/element
+commands, and Designer Extensions only run while a human has the Designer
+physically open. **That conclusion no longer holds.** The user added
+Webflow's own MCP server ("Webflow MCP 2.0" / `webflow-mcp-server`,
+tool-prefixed `mcp__<connection-id>__*` — the id is per-connection, re-find
+the tools by name via `ToolSearch` rather than hardcoding a prefix) partway
+through the session, and it genuinely can create pages, insert component
+instances, set attributes, and publish. If a fresh session's `ToolSearch`
+doesn't surface tools like `data_element_tool` / `data_component_tool` /
+`data_pages_tool` / `designer_tool`, the server may not be connected — search
+for it before assuming the old limitation still applies.
+
+**Two categories of tool, with different requirements — call
+`webflow_guide_tool` first in any session that uses these, it has the
+authoritative up-to-date usage rules:**
+
+- **Data tools** (`data_*`, e.g. `data_pages_tool`, `data_element_tool`,
+  `data_component_tool`, `data_component_builder`, `data_sites_tool`) are
+  plain REST calls against Webflow's backend. They work **headlessly** —
+  confirmed working in this environment with no browser, no live Designer
+  session, nothing open on the user's end. This is how a page gets created,
+  an element tree gets read, a component instance gets inserted, attributes
+  get set, and the site gets published.
+- **`designer_tool` and `element_snapshot_tool`** interact with the user's
+  **live, currently-open Designer tab** specifically — get/set selection,
+  canvas navigation, visual snapshots. These fail with a clear "Unable to
+  connect to Webflow Designer" error (not a crash) if the user doesn't have
+  the Designer open with the MCP companion connected; the error message
+  includes a real, safe connection link to hand back to the user
+  (`https://<site-shortname>.design.webflow.com?app=...`) — share it as a
+  markdown link, don't fabricate one.
+
+**Verified end-to-end this session:** found the site's real shared `Navbar`
+component (`data_component_tool > query_components`), read the login page's
+element tree (`data_element_tool > get_all_elements`), inserted a live
+instance of that exact component before the existing embed content
+(`data_component_builder` / `data_component_tool > insert_component_instance`
+with `creation_position: "before"`), confirmed the new order by re-reading
+the tree, then published (`data_sites_tool > publish_site`) — **after
+explicit user confirmation**, since publishing is whole-site by default
+(single-page publishing needs an Enterprise plan) and pushes out any other
+unpublished draft changes too, not just the one edit just made. Verified live
+via `curl` afterward: real navbar markup present, login form still intact.
+
+**Still true and unchanged:**
 - **Webflow CLI OAuth login (`webflow auth login`) refuses without a real
   interactive TTY** — confirmed failing identically via both the Bash tool
-  and the PowerShell tool in this environment. Don't keep retrying it; it's
-  deliberate CLI design, not a transient failure.
-- **Claude in Chrome** (`mcp__claude-in-chrome__*`) was not installed/
-  connected as of last check. Different tool from the sandboxed Browser tool
-  below; may be worth retrying `tabs_context_mcp` once at the start of a
-  session to see if it's since been set up — if it works, it could
-  potentially drive the *user's real, logged-in* Chrome through Designer UI
-  clicks, which is the only theoretical path to real Designer automation.
+  and the PowerShell tool. This is the *old* Webflow CLI (`webflow` on PATH,
+  `npm i -g webflow-cli` or similar) — unrelated to the MCP server above,
+  which authenticates differently and does work. Don't conflate the two or
+  retry the CLI login expecting a different result.
 - **The sandboxed Browser tool (`mcp__Claude_Browser__*`) crashes Claude
-  Code** — user-confirmed twice in one session. **Do not use it, at all,**
-  for this project. Verify everything via `curl`/`node` HTTP requests
-  instead (see `SKILLS.md`).
-
-**Net effect: any change to an actual Webflow page's structure (new element,
-new nav link, new custom attribute on an existing element) requires the
-human to make it in the Designer.** Claude's job is to make that manual step
-as small as possible — usually "add one attribute to an element that already
-exists" rather than "build a new structure." The `data-blbd="account-link"`
-shortcut (one attribute, no duplication) vs. the older `anon-only`/
-`member-only` two-link pattern is the canonical example of this trade-off.
+  Code** — user-confirmed twice. **Do not use it, at all,** for this
+  project. The Webflow MCP tools above are a better path for anything that
+  needs the Designer anyway.
+- Prefer the **one-attribute shortcuts** (`data-blbd="account-link"` etc.)
+  over building new structure even now that real editing works — smaller
+  diffs are still easier to verify and less likely to fight the site's
+  existing design.
+- **Always confirm before publishing** — the edit itself (via data tools) is
+  safe/reversible (it's a draft-state change), but `publish_site` is
+  whole-site by default and is exactly the kind of action to check first,
+  same as any other publish action.
 
 ## Verification discipline — mistakes already made, don't repeat them
 

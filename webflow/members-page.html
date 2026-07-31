@@ -14,6 +14,17 @@
   data-blbd-template contract in DESIGN-TEAM.md — nothing here is
   load-bearing beyond the three attribute'd divs.
 -->
+<nav class="blbd-mini-nav">
+  <a href="/" class="blbd-mini-nav__brand">Better Living Better Dying</a>
+  <div class="blbd-mini-nav__links">
+    <a href="/">Home</a>
+    <a href="/blog">Blog</a>
+    <a href="/join">Join</a>
+    <a href="/contact">Contact</a>
+    <a href="#" data-blbd="logout">Log out</a>
+  </div>
+</nav>
+
 <div class="blbd-page">
   <header class="blbd-page__head">
     <h1>Your account</h1>
@@ -36,6 +47,37 @@
 </div>
 
 <style>
+  /* Lightweight nav strip — this page has no header of its own since it's
+     just an Embed, not a real Webflow section, so there's otherwise no way
+     back to the rest of the site. Not a clone of the real navbar (fonts /
+     colors only, no logo asset, no dropdown) — swap for the actual Navbar
+     component from the Designer's Symbols panel later if pixel-matching
+     matters; this is the zero-Designer-work version. */
+  .blbd-mini-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e4e8ed;
+    font-family: 'Poppins', sans-serif;
+  }
+  .blbd-mini-nav__brand {
+    font-weight: 700;
+    font-size: 15px;
+    color: #28264d;
+    text-decoration: none;
+  }
+  .blbd-mini-nav__links { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .blbd-mini-nav__links a {
+    font-size: 14px;
+    font-weight: 500;
+    color: #69778c;
+    text-decoration: none;
+  }
+  .blbd-mini-nav__links a:hover { color: #48468c; }
+
   .blbd-page {
     max-width: 880px;
     margin: 0 auto;

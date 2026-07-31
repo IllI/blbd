@@ -82,6 +82,49 @@ than a dead button.
 > disappears. Building on top of it would mean the login page silently breaks
 > the day Memberstack goes away — the whole point of this migration.
 
+### Building the members page
+
+Same pattern as the login page, but simpler — this one needs no custom CSS at
+all, since it's built entirely from the pre-styled widgets already shipped in
+`blbd.js`.
+
+1. **Pages panel → + → Page**, name it **Members**, slug **`members`**.
+2. Drop an **Embed** element on it.
+3. Paste the entire contents of **[members-page.html](./members-page.html)**.
+4. Publish.
+
+That gives you the account summary (email, tier, billing, log out), the full
+goals board, and the profile editor on one page — all live-wired, nothing
+else to configure.
+
+### Making login land somewhere real
+
+Right now the script tag's default is to send someone back to `/` after
+signing in, since no members page existed yet. Once the page above is live,
+add one attribute to the existing script tag in **Footer Code**:
+
+```html
+<script defer src="https://app.blbd.life/v1/blbd.js"
+  data-supabase-url="..."
+  data-supabase-key="..."
+  data-app-url="..."
+  data-after-login="/members"></script>
+```
+
+### Making login *visible* everywhere, not just on `/members`
+
+A member who's already logged in shouldn't still see a "Join BLBD" button in
+the nav. Two small edits in the Designer, on the navbar component (applies
+site-wide, one edit for every page):
+
+1. On the existing **Join BLBD** / **Log in** nav link → custom attribute
+   `data-blbd` = `anon-only`.
+2. Duplicate it as a new link reading **My Account**, pointed at `/members`
+   → custom attribute `data-blbd` = `member-only`.
+
+That's the whole fix — no separate log-out link needed in the nav; the
+`/members` page's account widget already has a working one.
+
 ### That alone fixes
 
 | Page | What starts working |

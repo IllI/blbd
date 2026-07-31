@@ -1,0 +1,51 @@
+<!--
+  BLBD — Members page (account + goals + profile)
+  ===================================================================
+  Paste into a single Embed element on a new Webflow page (slug
+  suggestion: "members"). See webflow/INSTALL.md "Building the members
+  page" for the two-line setup.
+
+  Unlike login-page.html, this doesn't need its own custom styling — it
+  uses the pre-built widgets already shipped in blbd.js (data-blbd=
+  "account" / "goals" / "profile"), which come with their own Starfire-
+  palette CSS. This wrapper just adds page structure and section
+  headings around them. Swap any of the three sections out for a
+  fully custom Designer-built version later using the data-blbd-list /
+  data-blbd-template contract in DESIGN-TEAM.md — nothing here is
+  load-bearing beyond the three attribute'd divs.
+-->
+<div class="blbd-page">
+  <header class="blbd-page__head">
+    <h1>Your account</h1>
+    <p>Ten goals. One profile. However much of it you want the world to see.</p>
+  </header>
+
+  <section class="blbd-page__section">
+    <div data-blbd="account"></div>
+  </section>
+
+  <section class="blbd-page__section">
+    <h2 class="blbd-page__heading">Your ten</h2>
+    <div data-blbd="goals"></div>
+  </section>
+
+  <section class="blbd-page__section">
+    <h2 class="blbd-page__heading">Your profile</h2>
+    <div data-blbd="profile"></div>
+  </section>
+</div>
+
+<style>
+  .blbd-page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+    font-family: 'Poppins', sans-serif;
+  }
+  .blbd-page__head { margin-bottom: 40px; }
+  .blbd-page__head h1 { font-size: 28px; font-weight: 700; color: #28264d; margin: 0 0 8px; }
+  .blbd-page__head p { color: #69778c; font-size: 16px; margin: 0; max-width: 56ch; }
+
+  .blbd-page__section { margin-bottom: 48px; }
+  .blbd-page__heading { font-size: 19px; font-weight: 700; color: #28264d; margin: 0 0 16px; }
+</style>

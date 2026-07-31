@@ -15,9 +15,9 @@ you already have.
 
 ## Step 1 — the script tag (required, do this once)
 
-**Use a versioned path (`/v1/blbd.js`), not the bare `/blbd.js`.** The bare
+**Use a versioned path (`/v2/blbd.js`), not the bare `/blbd.js`.** The bare
 path is the in-progress "edge" copy — whatever's on the branch right now — and
-can change under you. `/v1/blbd.js` is a frozen, cached-forever snapshot that
+can change under you. `/v2/blbd.js` is a frozen, cached-forever snapshot that
 only changes when we deliberately cut a new version (see *Releasing a new
 version* below). A real Webflow site should always point at a version.
 
@@ -25,11 +25,16 @@ Webflow → **Project Settings → Custom Code → Footer Code**, paste and Save
 then **Publish**:
 
 ```html
-<script defer src="https://app.blbd.life/v1/blbd.js"
+<script defer src="https://app.blbd.life/v2/blbd.js"
   data-supabase-url="https://ihghsacsxvibtwoiyjag.supabase.co"
   data-supabase-key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImloZ2hzYWNzeHZpYnR3b2l5amFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzOTUzMDMsImV4cCI6MjEwMDk3MTMwM30.jZs2B7J856qxkRUp4DTCLqiLME95pAztW_K2b4q3D_8"
   data-app-url="https://app.blbd.life"></script>
 ```
+
+> `blbd-2` is currently on the bare, unversioned `/blbd.js` — that's fine, it
+> already picks up every fix automatically with no Designer edit needed. No
+> rush to switch it to `/v2/` unless you want the "never changes under you"
+> guarantee; either way works.
 
 > The anon key is **meant** to be public. Every table is protected by Postgres
 > row-level security, so the key on its own grants nothing.
@@ -97,30 +102,34 @@ That gives you the account summary (email, tier, billing, log out), the full
 goals board, and the profile editor on one page — all live-wired, nothing
 else to configure.
 
-### Making login land somewhere real
+### Login lands on `/members` automatically — no edit needed
 
-Right now the script tag's default is to send someone back to `/` after
-signing in, since no members page existed yet. Once the page above is live,
-add one attribute to the existing script tag in **Footer Code**:
+The script's default landing page after signing in is `/members`, so once the
+page above is live, this already works. (Override with a
+`data-after-login="/some-other-page"` attribute on the script tag if a
+different site wants something else — not needed here.)
 
-```html
-<script defer src="https://app.blbd.life/v1/blbd.js"
-  data-supabase-url="..."
-  data-supabase-key="..."
-  data-app-url="..."
-  data-after-login="/members"></script>
-```
+### Making login *visible* in the nav — the one-attribute way
 
-### Making login *visible* everywhere, not just on `/members`
+A member who's already logged in shouldn't still see a "Join BLBD" button.
+The lowest-friction fix needs **no duplication, no second link** — just one
+custom attribute on the nav link you already have:
 
-A member who's already logged in shouldn't still see a "Join BLBD" button in
-the nav. Two small edits in the Designer, on the navbar component (applies
-site-wide, one edit for every page):
+1. In the Designer, click your existing **Join BLBD** nav link to select it.
+2. Right panel → **Settings** tab (the gear/wrench icon, not "Style") →
+   scroll to **Custom attributes** → **+**.
+3. Name: `data-blbd`, Value: `account-link`.
+4. Publish.
 
-1. On the existing **Join BLBD** / **Log in** nav link → custom attribute
-   `data-blbd` = `anon-only`.
-2. Duplicate it as a new link reading **My Account**, pointed at `/members`
-   → custom attribute `data-blbd` = `member-only`.
+That's it. Signed out, it still reads "Join BLBD" and goes to `/sign-up`
+exactly as before. Signed in, the script automatically relabels it "My
+Account" and repoints it at `/members` — same link, no new element, no
+attribute to remove or swap out.
+
+*(An alternative two-link pattern — one `anon-only` link and a separate
+`member-only` one — exists for sites that want the label to actually
+disappear rather than relabel; see `data-blbd="anon-only"` /
+`"member-only"` in DESIGN-TEAM.md. Not necessary here.)*
 
 That's the whole fix — no separate log-out link needed in the nav; the
 `/members` page's account widget already has a working one.

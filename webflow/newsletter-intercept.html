@@ -1,0 +1,70 @@
+<!--
+  BLBD newsletter form intercept — Webflow site-wide custom code
+  =================================================================
+  WHERE: Webflow → Project Settings → Custom Code → Footer Code
+         (Before </body>). Applies to every published page.
+  WHAT:  Intercepts single-field email forms (the Newsletter
+         component) and POSTs them to the portal API instead of
+         Webflow's default form handler. Multi-field forms (e.g. the
+         Contact form) are left alone.
+-->
+<script>
+  (function () {
+    var APP_ORIGIN = 'https://app.blbd.life';
+
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('form').forEach(function (form) {
+        var emailInput = form.querySelector('input[type="email"]');
+        if (!emailInput) return;
+
+        // Only newsletter-style forms: a single visible field (the email).
+        var visibleFields = form.querySelectorAll(
+          'input:not([type="hidden"]):not([type="submit"]), textarea, select'
+        );
+        if (visibleFields.length > 1) return;
+
+        form.addEventListener('submit', function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+
+          var button = form.querySelector('[type="submit"], button');
+          var originalText = button ? button.value || button.textContent : '';
+          if (button) {
+            if (button.value !== undefined && button.tagName === 'INPUT') button.value = 'Sending…';
+            else button.textContent = 'Sending…';
+            button.disabled = true;
+          }
+
+          fetch(APP_ORIGIN + '/api/newsletter/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: emailInput.value })
+          })
+            .then(function (response) {
+              return response.json();
+            })
+            .then(function (data) {
+              if (data && data.success) {
+                form.innerHTML =
+                  '<p style="color:#10b981;font-weight:600;padding:1rem 0;">✦ Check your email to confirm your subscription.</p>';
+              } else {
+                restore(button, originalText);
+                alert((data && data.error) || 'Something went wrong. Please try again.');
+              }
+            })
+            .catch(function () {
+              restore(button, originalText);
+              alert('Connection error. Please try again.');
+            });
+        });
+      });
+
+      function restore(button, text) {
+        if (!button) return;
+        button.disabled = false;
+        if (button.value !== undefined && button.tagName === 'INPUT') button.value = text;
+        else button.textContent = text;
+      }
+    });
+  })();
+</script>

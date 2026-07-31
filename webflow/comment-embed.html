@@ -1,0 +1,42 @@
+<!--
+  BLBD blog comments — Webflow embed
+  =================================================================
+  WHERE: Open the Blog Post CMS template in the Webflow Designer.
+         Drop an "Embed" element at the bottom of the post body,
+         below the article content, and paste this whole block in.
+  WHY IT WORKS FOR EVERY POST: the slug is read from the live URL at
+         runtime, so this one embed serves all posts.
+  ADJUST: if your blog URLs are NOT /blog/<slug> (e.g. a different
+         collection path), change the slug logic noted below.
+-->
+<div id="blbd-comments" style="width:100%;margin-top:3rem;">
+  <iframe
+    id="blbd-comment-frame"
+    title="Comments"
+    style="width:100%;border:none;min-height:420px;border-radius:12px;overflow:hidden;background:transparent;"
+    loading="lazy"
+    allow="clipboard-write"
+  ></iframe>
+
+  <script>
+    (function () {
+      // The published portal origin. Update if the subdomain ever changes.
+      var APP_ORIGIN = 'https://app.blbd.life';
+
+      // Last non-empty path segment = the CMS slug for /blog/<slug> URLs.
+      var segments = window.location.pathname.split('/').filter(Boolean);
+      var slug = segments[segments.length - 1] || 'home';
+
+      var frame = document.getElementById('blbd-comment-frame');
+      frame.src = APP_ORIGIN + '/embed/comments?slug=' + encodeURIComponent(slug);
+
+      // The widget posts its content height so the iframe can grow to fit.
+      window.addEventListener('message', function (event) {
+        if (event.origin !== APP_ORIGIN) return;
+        if (event.data && event.data.type === 'blbd-resize' && event.data.height) {
+          frame.style.height = event.data.height + 'px';
+        }
+      });
+    })();
+  </script>
+</div>

@@ -87,20 +87,33 @@ than a dead button.
 > disappears. Building on top of it would mean the login page silently breaks
 > the day Memberstack goes away — the whole point of this migration.
 
-### Building the members page
+### The member portal pages
 
-Same pattern as the login page, but simpler — this one needs no custom CSS at
-all, since it's built entirely from the pre-styled widgets already shipped in
-`blbd.js`.
+Mirrors the Vercel portal's structure: a Dashboard hub, plus a dedicated page
+per feature — rather than one page carrying everything. Each of these was
+built with the real shared Navbar component (not a hand-rolled nav strip)
+when the Webflow MCP server was connected; see CLAUDE.md "Editing the live
+Webflow Designer" if pushing one of these again via MCP instead of pasting.
 
-1. **Pages panel → + → Page**, name it **Members**, slug **`members`**.
-2. Drop an **Embed** element on it.
-3. Paste the entire contents of **[members-page.html](./members-page.html)**.
+| Page | Slug | Content | Source |
+| --- | --- | --- | --- |
+| Dashboard | `members` | Account summary + quick links out | `members-page.html` |
+| Goals | `goals` | Full 5+5 goals board | `goals-page.html` |
+| Profile | `profile` | Profile editor | `profile-page.html` |
+| Community | `community` | Member directory (supporter+) | `community-page.html` |
+
+None of these need custom CSS beyond page layout — the actual widgets
+(`data-blbd="account"` / `"goals"` / `"profile"` / `"directory"`) ship fully
+styled from `blbd.js`.
+
+**If the Webflow MCP server isn't connected**, build these by hand — same
+pattern for each:
+
+1. **Pages panel → + → Page**, matching name/slug from the table above.
+2. Drop the site's **Navbar** component onto the page (drag from the
+   Components panel — reuse the existing one, don't rebuild it).
+3. Drop an **Embed** element below it, paste the matching file's contents.
 4. Publish.
-
-That gives you the account summary (email, tier, billing, log out), the full
-goals board, and the profile editor on one page — all live-wired, nothing
-else to configure.
 
 ### Login lands on `/members` automatically — no edit needed
 

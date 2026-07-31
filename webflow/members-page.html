@@ -1,33 +1,23 @@
 <!--
-  BLBD — Members page (account + goals + profile)
+  BLBD — Dashboard page (account summary + links to Goals/Profile/Community)
   ===================================================================
-  Paste into a single Embed element on a new Webflow page (slug
-  suggestion: "members"). See webflow/INSTALL.md "Building the members
-  page" for the two-line setup.
+  Lives on the "Members" page (slug: members) in Webflow. Pushed directly
+  via the Webflow MCP server as of 2026-07-31 — see CLAUDE.md "Editing the
+  live Webflow Designer" for how, if pushing again by hand.
 
-  Unlike login-page.html, this doesn't need its own custom styling — it
-  uses the pre-built widgets already shipped in blbd.js (data-blbd=
-  "account" / "goals" / "profile"), which come with their own Starfire-
-  palette CSS. This wrapper just adds page structure and section
-  headings around them. Swap any of the three sections out for a
-  fully custom Designer-built version later using the data-blbd-list /
-  data-blbd-template contract in DESIGN-TEAM.md — nothing here is
-  load-bearing beyond the three attribute'd divs.
+  A real Navbar component instance sits above this Embed on the canvas
+  (inserted separately, not part of this file) — this content used to carry
+  its own hand-rolled `.blbd-mini-nav` before that was possible; that's gone
+  now that the real shared navbar is there instead.
+
+  This page used to also embed the full goals board and full profile editor
+  inline. Both moved to their own dedicated pages (goals-page.html,
+  profile-page.html) to match the Vercel portal's dashboard-then-drill-down
+  structure — this page is now a hub: account snapshot + links out.
 -->
-<nav class="blbd-mini-nav">
-  <a href="/" class="blbd-mini-nav__brand">Better Living Better Dying</a>
-  <div class="blbd-mini-nav__links">
-    <a href="/">Home</a>
-    <a href="/blog">Blog</a>
-    <a href="/join">Join</a>
-    <a href="/contact">Contact</a>
-    <a href="#" data-blbd="logout">Log out</a>
-  </div>
-</nav>
-
 <div class="blbd-page">
   <header class="blbd-page__head">
-    <h1>Your account</h1>
+    <h1>Dashboard</h1>
     <p>Ten goals. One profile. However much of it you want the world to see.</p>
   </header>
 
@@ -36,58 +26,53 @@
   </section>
 
   <section class="blbd-page__section">
-    <h2 class="blbd-page__heading">Your ten</h2>
-    <div data-blbd="goals"></div>
-  </section>
-
-  <section class="blbd-page__section">
-    <h2 class="blbd-page__heading">Your profile</h2>
-    <div data-blbd="profile"></div>
+    <h2 class="blbd-page__heading">Quick links</h2>
+    <div class="blbd-quicklinks">
+      <a href="/goals" class="blbd-quicklink">
+        <div class="blbd-quicklink__title">Your ten goals</div>
+        <div class="blbd-quicklink__desc">Five for living well, five for dying well.</div>
+      </a>
+      <a href="/profile" class="blbd-quicklink">
+        <div class="blbd-quicklink__title">Your profile</div>
+        <div class="blbd-quicklink__desc">Edit your bio, avatar, and what's public.</div>
+      </a>
+      <a href="/community" class="blbd-quicklink" data-blbd-tier="supporter">
+        <div class="blbd-quicklink__title">Community</div>
+        <div class="blbd-quicklink__desc">See members who've made their profile public.</div>
+      </a>
+    </div>
   </section>
 </div>
 
 <style>
-  /* Lightweight nav strip — this page has no header of its own since it's
-     just an Embed, not a real Webflow section, so there's otherwise no way
-     back to the rest of the site. Not a clone of the real navbar (fonts /
-     colors only, no logo asset, no dropdown) — swap for the actual Navbar
-     component from the Designer's Symbols panel later if pixel-matching
-     matters; this is the zero-Designer-work version. */
-  .blbd-mini-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
-    padding: 20px 24px;
-    border-bottom: 1px solid #e4e8ed;
-    font-family: 'Poppins', sans-serif;
-  }
-  .blbd-mini-nav__brand {
-    font-weight: 700;
-    font-size: 15px;
-    color: #28264d;
-    text-decoration: none;
-  }
-  .blbd-mini-nav__links { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-  .blbd-mini-nav__links a {
-    font-size: 14px;
-    font-weight: 500;
-    color: #69778c;
-    text-decoration: none;
-  }
-  .blbd-mini-nav__links a:hover { color: #48468c; }
-
   .blbd-page {
     max-width: 880px;
     margin: 0 auto;
-    padding: 56px 24px 96px;
+    padding: 40px 24px 96px;
     font-family: 'Poppins', sans-serif;
   }
-  .blbd-page__head { margin-bottom: 40px; }
+  .blbd-page__head { margin-bottom: 32px; }
   .blbd-page__head h1 { font-size: 28px; font-weight: 700; color: #28264d; margin: 0 0 8px; }
   .blbd-page__head p { color: #69778c; font-size: 16px; margin: 0; max-width: 56ch; }
 
-  .blbd-page__section { margin-bottom: 48px; }
-  .blbd-page__heading { font-size: 19px; font-weight: 700; color: #28264d; margin: 0 0 16px; }
+  .blbd-page__section { margin-bottom: 40px; }
+  .blbd-page__heading { font-size: 18px; font-weight: 700; color: #28264d; margin: 0 0 14px; }
+
+  .blbd-quicklinks {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .blbd-quicklink {
+    display: block;
+    padding: 18px;
+    border: 1px solid #e4e8ed;
+    border-radius: 12px;
+    background: #fff;
+    text-decoration: none;
+    transition: transform 150ms ease, box-shadow 150ms ease;
+  }
+  .blbd-quicklink:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(40,38,77,0.1); }
+  .blbd-quicklink__title { font-size: 15px; font-weight: 700; color: #28264d; margin-bottom: 4px; }
+  .blbd-quicklink__desc { font-size: 13px; color: #69778c; }
 </style>

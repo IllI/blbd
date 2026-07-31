@@ -1,0 +1,22 @@
+<!--
+  BLBD — Profile page
+  ===================================================================
+  Lives on its own page (slug: profile) with a real Navbar component
+  instance above this Embed on the canvas. Pushed directly via the
+  Webflow MCP server — see CLAUDE.md "Editing the live Webflow Designer".
+-->
+<div class="blbd-page">
+  <header class="blbd-page__head">
+    <a href="/members" class="blbd-page__back">← Back to dashboard</a>
+    <h1>Your profile</h1>
+    <p>This is what other members see. Share as much or as little as you like.</p>
+  </header>
+  <div data-blbd="profile"></div>
+</div>
+<style>
+  .blbd-page { max-width: 880px; margin: 0 auto; padding: 40px 24px 96px; font-family: 'Poppins', sans-serif; }
+  .blbd-page__back { display: inline-block; margin-bottom: 16px; font-size: 13px; font-weight: 600; color: #69778c; text-decoration: none; }
+  .blbd-page__back:hover { color: #48468c; }
+  .blbd-page__head h1 { font-size: 26px; font-weight: 700; color: #28264d; margin: 0 0 8px; }
+  .blbd-page__head p { color: #69778c; font-size: 15px; margin: 0 0 32px; max-width: 56ch; }
+</style>

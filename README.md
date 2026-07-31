@@ -41,6 +41,21 @@ npm run dev
 - `npm run dev` — local dev server
 - `npm run build` — production build (also full type-check)
 - `npm run lint` — ESLint
+- `node scripts/release-sdk.mjs vN` — freeze `public/blbd.js` as a pinned
+  `public/vN/blbd.js`. Real Webflow sites should link a versioned path, never
+  the bare `/blbd.js` (see `webflow/INSTALL.md`).
+
+## Deploying
+
+Pushing to `main` on [github.com/IllI/blbd](https://github.com/IllI/blbd)
+auto-deploys to Vercel (project `blbd`) — no manual `vercel --prod` needed
+anymore. Other branches get their own preview deployment URL.
+
+`app.blbd.life` (once its DNS record is added — see `SETUP.md`) always points
+at the latest Production deploy automatically. The interim testing aliases
+`blbd-life.vercel.app` / `blbd-staging.vercel.app` do **not** — they only move
+when explicitly re-pointed with `vercel alias set <deployment> <alias>`,
+since they're ad-hoc `.vercel.app` aliases, not a real project domain.
 
 ## Architecture notes
 

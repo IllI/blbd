@@ -15,9 +15,9 @@ you already have.
 
 ## Step 1 — the script tag (required, do this once)
 
-**Use a versioned path (`/v4/blbd.js`), not the bare `/blbd.js`.** The bare
+**Use a versioned path (`/v5/blbd.js`), not the bare `/blbd.js`.** The bare
 path is the in-progress "edge" copy — whatever's on the branch right now — and
-can change under you. `/v4/blbd.js` is a frozen, cached-forever snapshot that
+can change under you. `/v5/blbd.js` is a frozen, cached-forever snapshot that
 only changes when we deliberately cut a new version (see *Releasing a new
 version* below). A real Webflow site should always point at a version.
 
@@ -25,7 +25,7 @@ Webflow → **Project Settings → Custom Code → Footer Code**, paste and Save
 then **Publish**:
 
 ```html
-<script defer src="https://app.blbd.life/v4/blbd.js"
+<script defer src="https://app.blbd.life/v5/blbd.js"
   data-supabase-url="https://ihghsacsxvibtwoiyjag.supabase.co"
   data-supabase-key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImloZ2hzYWNzeHZpYnR3b2l5amFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzOTUzMDMsImV4cCI6MjEwMDk3MTMwM30.jZs2B7J856qxkRUp4DTCLqiLME95pAztW_K2b4q3D_8"
   data-app-url="https://app.blbd.life"></script>
@@ -51,11 +51,11 @@ When `public/blbd.js` has changes ready to go live:
 node scripts/release-sdk.mjs v2      # freezes the current edge copy as v2
 git add public/v2 && git commit -m "Release SDK v2"
 vercel --prod                        # deploy
-# verify https://blbd-life.vercel.app/v4/blbd.js before telling anyone to switch
+# verify https://blbd-life.vercel.app/v5/blbd.js before telling anyone to switch
 ```
 
 Existing Webflow sites on `/v1/blbd.js` are unaffected until someone
-deliberately edits their footer code to point at `/v4/blbd.js` — a version
+deliberately edits their footer code to point at `/v5/blbd.js` — a version
 never changes out from under a site that's already pinned to it.
 
 ### Building the login page

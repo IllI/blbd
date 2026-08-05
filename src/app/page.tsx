@@ -32,7 +32,7 @@ export default async function RootPage() {
     { label: 'Webflow CMS', ok: Boolean(process.env.WEBFLOW_API_TOKEN), detail: 'blog sync' },
   ];
 
-  const snippet = `<script defer src="${APP_URL}/v4/blbd.js"
+  const snippet = `<script defer src="${APP_URL}/v5/blbd.js"
   data-supabase-url="${SUPABASE_URL}"
   data-supabase-key="YOUR_ANON_KEY"
   data-app-url="${APP_URL}"></script>`;

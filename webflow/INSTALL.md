@@ -15,9 +15,9 @@ you already have.
 
 ## Step 1 — the script tag (required, do this once)
 
-**Use a versioned path (`/v3/blbd.js`), not the bare `/blbd.js`.** The bare
+**Use a versioned path (`/v4/blbd.js`), not the bare `/blbd.js`.** The bare
 path is the in-progress "edge" copy — whatever's on the branch right now — and
-can change under you. `/v3/blbd.js` is a frozen, cached-forever snapshot that
+can change under you. `/v4/blbd.js` is a frozen, cached-forever snapshot that
 only changes when we deliberately cut a new version (see *Releasing a new
 version* below). A real Webflow site should always point at a version.
 
@@ -25,7 +25,7 @@ Webflow → **Project Settings → Custom Code → Footer Code**, paste and Save
 then **Publish**:
 
 ```html
-<script defer src="https://app.blbd.life/v3/blbd.js"
+<script defer src="https://app.blbd.life/v4/blbd.js"
   data-supabase-url="https://ihghsacsxvibtwoiyjag.supabase.co"
   data-supabase-key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImloZ2hzYWNzeHZpYnR3b2l5amFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzOTUzMDMsImV4cCI6MjEwMDk3MTMwM30.jZs2B7J856qxkRUp4DTCLqiLME95pAztW_K2b4q3D_8"
   data-app-url="https://app.blbd.life"></script>
@@ -51,11 +51,11 @@ When `public/blbd.js` has changes ready to go live:
 node scripts/release-sdk.mjs v2      # freezes the current edge copy as v2
 git add public/v2 && git commit -m "Release SDK v2"
 vercel --prod                        # deploy
-# verify https://blbd-life.vercel.app/v3/blbd.js before telling anyone to switch
+# verify https://blbd-life.vercel.app/v4/blbd.js before telling anyone to switch
 ```
 
 Existing Webflow sites on `/v1/blbd.js` are unaffected until someone
-deliberately edits their footer code to point at `/v3/blbd.js` — a version
+deliberately edits their footer code to point at `/v4/blbd.js` — a version
 never changes out from under a site that's already pinned to it.
 
 ### Building the login page
@@ -122,30 +122,34 @@ page above is live, this already works. (Override with a
 `data-after-login="/some-other-page"` attribute on the script tag if a
 different site wants something else — not needed here.)
 
-### Making login *visible* in the nav — the one-attribute way
+### The nav account menu — automatic, no Designer work
 
-A member who's already logged in shouldn't still see a "Join BLBD" button.
-The lowest-friction fix needs **no duplication, no second link** — just one
-custom attribute on the nav link you already have:
+As of SDK v4 this needs **zero** setup. On every page:
 
-1. In the Designer, click your existing **Join BLBD** nav link to select it.
-2. Right panel → **Settings** tab (the gear/wrench icon, not "Style") →
-   scroll to **Custom attributes** → **+**.
-3. Name: `data-blbd`, Value: `account-link`.
-4. Publish.
+- **Signed out:** the "Join BLBD" nav button behaves normally (and a bare
+  `href="#"` one is auto-routed to `/sign-up`).
+- **Signed in:** the script hides the "Join"/"Sign up" nav button and drops a
+  **profile-avatar dropdown** in its place — avatar (photo or initials) →
+  Dashboard / Goals / Profile / Community / Log out. No attribute to add, no
+  second link to build.
 
-That's it. Signed out, it still reads "Join BLBD" and goes to `/sign-up`
-exactly as before. Signed in, the script automatically relabels it "My
-Account" and repoints it at `/members` — same link, no new element, no
-attribute to remove or swap out.
+It finds the Join button by its text, scoped to the nav, and skips anything
+you've explicitly tagged with a `data-blbd` attribute — so if you *do* still
+want the older behaviors they win:
 
-*(An alternative two-link pattern — one `anon-only` link and a separate
-`member-only` one — exists for sites that want the label to actually
-disappear rather than relabel; see `data-blbd="anon-only"` /
-`"member-only"` in DESIGN-TEAM.md. Not necessary here.)*
+- `data-blbd="account-link"` on a link → relabels it "My Account" → `/members`
+  when signed in (instead of the dropdown taking over that button).
+- `data-blbd="anon-only"` / `"member-only"` on any element → hard show/hide by
+  login state (see DESIGN-TEAM.md).
 
-That's the whole fix — no separate log-out link needed in the nav; the
-`/members` page's account widget already has a working one.
+### Member pages are gated automatically
+
+Also as of v4: a signed-out visitor who lands on `/members`, `/goals`,
+`/profile`, or `/community` (by typing the URL or an old link) is redirected
+to the login page and returned there after signing in. Nothing to configure.
+Override the list with `data-member-paths="/members,/goals,…"` on the script
+tag if the slugs differ. (Member *data* is already protected by the database
+regardless — this is the front-door UX gate on top of that.)
 
 ### That alone fixes
 

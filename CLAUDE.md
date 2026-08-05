@@ -102,6 +102,20 @@ of `CFG.loginPath`).
    comments is a reasonable next step if the design team hits real limits
    with widget-level CSS overrides.
 
+**Automatic nav behavior (no Designer work needed, runs on every page):**
+- `mountNavAccount()` — when signed in, hides "Join"/"Sign up" nav CTAs
+  (auto-detected by text via `authIntent()`, scoped to nav-ish containers by
+  `isNavCta()`, skipping anything already tagged `data-blbd`) and injects a
+  profile-avatar dropdown (`#blbd-nav-account`) with Dashboard/Goals/Profile/
+  Community + Log out. Idempotent; removed and CTAs restored on logout. This
+  is why the "show a profile menu instead of Join when logged in" requirement
+  did NOT need a Webflow edit — it's inherently per-visitor runtime state.
+- `gateMemberPages()` — runs at boot before `start()`. A guest on any
+  `CFG.memberPaths` page (`/members,/goals,/profile,/community` by default,
+  override with `data-member-paths`) is `location.replace`'d to
+  `CFG.loginPath?next=…`. Member DATA is already RLS-protected; this is the
+  UX gate so guests don't reach a shell page by typing the URL.
+
 ## Editing the actual Webflow Designer — superseded, read this not the old advice
 
 **Earlier in this project's life, real Designer editing (elements, attributes,
@@ -117,6 +131,20 @@ instances, set attributes, and publish. If a fresh session's `ToolSearch`
 doesn't surface tools like `data_element_tool` / `data_component_tool` /
 `data_pages_tool` / `designer_tool`, the server may not be connected — search
 for it before assuming the old limitation still applies.
+
+**AUTH CAVEAT (learned the next session):** the Webflow MCP connection can
+**drop its authorization** and then require an interactive OAuth re-login.
+When that happens in a non-interactive Claude Code run, the tools are simply
+unavailable — the harness reports "The following MCP servers require
+authentication: webflow" and you cannot run the flow. Do NOT ask the user for
+tokens/codes. Tell them to re-authorize it (claude.ai connector settings, or
+`/mcp` in an interactive session) if direct Designer edits are needed. But
+first check whether the task even needs the Designer: a lot of what looks like
+"change the navbar" is actually per-visitor runtime behavior (show X when
+logged in) that belongs in `blbd.js`, not in static Webflow markup — the SDK
+ships via the git→Vercel pipeline with no Webflow auth involved at all. Reach
+for the SDK first; reach for the MCP only for genuinely structural, same-for-
+everyone changes (a new page, a shared component instance, a real element).
 
 **Two categories of tool, with different requirements — call
 `webflow_guide_tool` first in any session that uses these, it has the

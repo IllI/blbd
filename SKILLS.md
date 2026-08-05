@@ -90,6 +90,21 @@ it). If present, **call `webflow_guide_tool` first** — it returns the
 authoritative, versioned usage rules and is more reliable than remembering
 them here.
 
+**If the harness says "The following MCP servers require authentication:
+webflow"** the connection dropped its OAuth and this (non-interactive) session
+can't restore it. Do not ask for tokens/codes. Tell the user to re-authorize
+(claude.ai connector settings, or `/mcp` in an interactive session). Then
+reconsider whether the task even needs the Designer — see the next paragraph.
+
+**Before reaching for these tools, ask: is this actually a Designer change?**
+"Show a profile menu when logged in / hide Join / gate a page / relabel a
+link" are all **per-visitor runtime** behaviors — same HTML for everyone,
+decided in the browser. Those belong in `blbd.js` (ship via the git pipeline,
+no Webflow auth needed), NOT in the Designer. Use the MCP only for structural,
+same-for-every-visitor changes: a new page, a shared component instance placed
+on a page, a real static element. (Example that correctly used the SDK, not
+the MCP: the nav account dropdown + member-page gating in v4.)
+
 Typical flow for "make this page match the rest of the site" tasks (e.g.
 inserting the shared navbar onto a bare Embed-only page):
 

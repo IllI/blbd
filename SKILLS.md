@@ -137,6 +137,28 @@ inserting the shared navbar onto a bare Embed-only page):
    for the draft-state write; a curl against the live domain is what proves
    it's actually visible to a real visitor.
 
+### Publishing WITHOUT the MCP (works even when its OAuth has dropped)
+
+The MCP's `publish_site` needs the MCP connection. But the **Data API publish
+endpoint uses the plain `WEBFLOW_API_TOKEN`** (the same CMS token in
+`.env.local` / Vercel env) and is completely independent of the MCP OAuth —
+confirmed working when the MCP was de-authed mid-session:
+
+```bash
+TOKEN=$(grep '^WEBFLOW_API_TOKEN=' .env.local | cut -d= -f2)
+curl -s -X POST "https://api.webflow.com/v2/sites/69b9ae3792be3b49ef7eab96/publish" \
+  -H "Authorization: Bearer $TOKEN" -H "accept-version: 2.0.0" \
+  -H "Content-Type: application/json" \
+  -d '{"publishToWebflowSubdomain": true}' -w "\nHTTP %{http_code}\n"
+```
+
+`HTTP 202` = accepted (async — wait ~15s, then curl the live pages to
+confirm). Whole-site only, same as the MCP path, so **still get user
+confirmation first**. This is the escape hatch when draft edits are stuck
+unpublished because the MCP lost auth. (`69b9ae3792be3b49ef7eab96` = blbd-2's
+site id.) It does NOT let you *edit* elements without the MCP — only publish
+whatever's already in draft.
+
 ## Diagnose "a redirect/link goes to the wrong place"
 
 Almost always a mismatch between a `CFG.*Path` default in `blbd.js` and the

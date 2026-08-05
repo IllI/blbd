@@ -4,6 +4,7 @@ The membership backend for **Better Living Better Dying** ([blbd.life](https://b
 deployed at `app.blbd.life`. Next.js + Supabase + Stripe + Resend. Replaces the
 discontinued Webflow native memberships used by the Starfire template.
 
+- **New to this repo? Start here:** [`ONBOARDING.md`](./ONBOARDING.md)
 - **Setup & deploy:** [`SETUP.md`](./SETUP.md)
 - **Schema notes:** [`supabase/README.md`](./supabase/README.md)
 - **Webflow snippets:** [`webflow/`](./webflow/)

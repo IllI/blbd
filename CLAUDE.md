@@ -115,6 +115,22 @@ of `CFG.loginPath`).
   override with `data-member-paths`) is `location.replace`'d to
   `CFG.loginPath?next=…`. Member DATA is already RLS-protected; this is the
   UX gate so guests don't reach a shell page by typing the URL.
+- `mountMemberSidebar()` (v5) — a right-docked, collapsible vertical menu
+  (Dashboard/Goals/Profile/Community + Log out, current page highlighted,
+  collapse state in localStorage). Shown only to signed-in members on member
+  pages. SDK chrome, same rationale as the dropdown — not a per-page Webflow
+  element.
+
+**The blbd-2 navbar links were repointed via the Webflow MCP (2026-08-05),
+not the SDK** — because they're the same static href for every visitor, which
+is genuinely a Designer change (unlike the dropdown/sidebar). Mapping now
+live in the shared Navbar component: About→/about-us, Feature→/features (new
+page), User Examples→/user-examples (new page), Pricing→/join, Join
+BLBD→/sign-up, and the Resources dropdown's 3 placeholder links →
+/blog, /member-blog, /upcoming-events. `/features` and `/user-examples` were
+created as themed placeholder pages (navbar + a hero embed) for the design
+team to build out. Editing one shared component fixed the nav on every page
+at once.
 
 ## Editing the actual Webflow Designer — superseded, read this not the old advice
 

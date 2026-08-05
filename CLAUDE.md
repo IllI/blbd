@@ -115,6 +115,18 @@ of `CFG.loginPath`).
   override with `data-member-paths`) is `location.replace`'d to
   `CFG.loginPath?next=…`. Member DATA is already RLS-protected; this is the
   UX gate so guests don't reach a shell page by typing the URL.
+- **Pre-paint auth flag (v6)** — `webflow/head-snippet.html`, installed in
+  blbd-2's **head** freeform code. Synchronous localStorage peek that stamps
+  `data-blbd-auth="member"|"guest"` on `<html>` before any body paints, plus
+  CSS hiding the nav signup CTA for members from frame one. This is the ONLY
+  way to kill the "Join button flash": the footer script is `defer` (runs
+  post-paint) and even in the head `applyState()` must await an async session
+  check first. `applyState()` now re-stamps that attribute **first**, not
+  last, so a wrong guess self-corrects in the same frame. Has a 5s safety net
+  (if `window.BLBD` never appears, revert to `guest`) so a failed script load
+  can't strand a member with an empty nav. CSS is scoped to the navbar
+  (`.navbar-no-shadow .button-primary`), never bare `.button-primary` — that's
+  a generic Webflow class. Verified: exactly one real instance on the page.
 - `mountMemberSidebar()` (v5) — a right-docked, collapsible vertical menu
   (Dashboard/Goals/Profile/Community + Log out, current page highlighted,
   collapse state in localStorage). Shown only to signed-in members on member
@@ -229,6 +241,13 @@ precisely** (e.g. `grep -o '<nav class="blbd-mini-nav">'`), not a bare
 substring that could also match a CSS rule, a comment, or an unrelated
 occurrence. When in doubt, dump wider context and read it, don't trust a
 single count.
+
+Third instance (2026-08-05), same root cause: `grep -oc PATTERN` reported
+"1 occurrence" of `.button-primary` — but **`grep -c` counts matching LINES,
+not matches**, and minified Webflow HTML is one giant line. The real count
+was 3 (two were my own CSS selectors, one the actual button). Use
+`grep -o PATTERN | wc -l` for occurrences, and when a count drives a
+decision, print each match with surrounding context and eyeball it.
 
 ## Known gotchas already paid for once — don't rediscover
 

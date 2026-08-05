@@ -15,9 +15,9 @@ you already have.
 
 ## Step 1 — the script tag (required, do this once)
 
-**Use a versioned path (`/v5/blbd.js`), not the bare `/blbd.js`.** The bare
+**Use a versioned path (`/v6/blbd.js`), not the bare `/blbd.js`.** The bare
 path is the in-progress "edge" copy — whatever's on the branch right now — and
-can change under you. `/v5/blbd.js` is a frozen, cached-forever snapshot that
+can change under you. `/v6/blbd.js` is a frozen, cached-forever snapshot that
 only changes when we deliberately cut a new version (see *Releasing a new
 version* below). A real Webflow site should always point at a version.
 
@@ -25,7 +25,7 @@ Webflow → **Project Settings → Custom Code → Footer Code**, paste and Save
 then **Publish**:
 
 ```html
-<script defer src="https://app.blbd.life/v5/blbd.js"
+<script defer src="https://app.blbd.life/v6/blbd.js"
   data-supabase-url="https://ihghsacsxvibtwoiyjag.supabase.co"
   data-supabase-key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImloZ2hzYWNzeHZpYnR3b2l5amFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzOTUzMDMsImV4cCI6MjEwMDk3MTMwM30.jZs2B7J856qxkRUp4DTCLqiLME95pAztW_K2b4q3D_8"
   data-app-url="https://app.blbd.life"></script>
@@ -43,6 +43,28 @@ Before `app.blbd.life` DNS is live, swap both `app.blbd.life` values for
 `https://blbd-life.vercel.app` (production) — or `https://blbd-staging.vercel.app`
 if you're testing an unreleased change on `blbd-2` before it's promoted.
 
+### Step 1b — the head snippet (stops the "Join button flash")
+
+Also paste **[head-snippet.html](./head-snippet.html)** into Webflow →
+**Site settings → Custom code → HEAD code**, then publish.
+
+Without it, signed-in members see "Join BLBD" for a frame before the profile
+avatar replaces it. That's unavoidable with the footer script alone: it's
+`defer`, so it runs after the page has already painted — and even in the head
+it would still have to await an async session check first.
+
+The snippet is a few lines of synchronous JS that peek at `localStorage`
+before first paint and stamp `data-blbd-auth="member" | "guest"` on `<html>`,
+plus CSS that hides the nav signup CTA for members from frame one. `blbd.js`
+re-stamps the same attribute with the authoritative answer once its async
+check completes, so a wrong guess self-corrects. If `blbd.js` fails to load
+entirely, a 5-second fallback restores the signed-out nav rather than
+leaving a member with an empty gap.
+
+It keys on the nav signup CTA automatically. To mark a signup CTA it can't
+infer (different wording, or outside the nav), add the custom attribute
+`data-blbd-join` (no value needed) — `blbd.js` honors the same marker.
+
 ### Releasing a new version
 
 When `public/blbd.js` has changes ready to go live:
@@ -51,11 +73,11 @@ When `public/blbd.js` has changes ready to go live:
 node scripts/release-sdk.mjs v2      # freezes the current edge copy as v2
 git add public/v2 && git commit -m "Release SDK v2"
 vercel --prod                        # deploy
-# verify https://blbd-life.vercel.app/v5/blbd.js before telling anyone to switch
+# verify https://blbd-life.vercel.app/v6/blbd.js before telling anyone to switch
 ```
 
 Existing Webflow sites on `/v1/blbd.js` are unaffected until someone
-deliberately edits their footer code to point at `/v5/blbd.js` — a version
+deliberately edits their footer code to point at `/v6/blbd.js` — a version
 never changes out from under a site that's already pinned to it.
 
 ### Building the login page

@@ -1,0 +1,78 @@
+<!--
+  BLBD — pre-paint auth flag (fixes the "Join button flash")
+  ===================================================================
+  Goes in Webflow → Site settings → Custom code → **HEAD code**.
+  The existing footer <script src=".../blbd.js"> stays exactly where it is —
+  this is *additional*, not a replacement.
+
+  WHY THIS EXISTS
+  The footer's blbd.js is `defer`, so it runs only after the document has
+  parsed and painted. By then "Join BLBD" has already been on screen for a
+  frame — hence the flash before the profile avatar swaps in. Moving blbd.js
+  to the head would NOT fix it: it still has to await an async session check
+  before it knows who you are.
+
+  The fix is this tiny SYNCHRONOUS snippet. It runs while the browser is
+  still parsing <head>, before any body content paints. It only peeks at
+  localStorage (no network, no await), stamps data-blbd-auth on <html>, and
+  the CSS below hides the nav Join button from the very first frame.
+  blbd.js later re-stamps the same attribute with the authoritative answer
+  once its async check finishes — so a stale/forged flag self-corrects
+  within a few hundred ms, and it never grants access to anything (the real
+  gates are Postgres RLS + blbd.js).
+
+  Deliberately tiny and dependency-free: it blocks the parser, so it must
+  stay microseconds. It does not validate the token — that's blbd.js's job.
+  It only answers "is there a plausible unexpired session?", which is
+  exactly enough to decide what to paint first.
+-->
+<script>
+(function () {
+  var state = 'guest';
+  try {
+    var raw = localStorage.getItem('blbd.session');
+    if (raw) {
+      var s = JSON.parse(raw);
+      // Same expiry rule blbd.js uses, minus its 60s refresh margin: a
+      // merely-stale session still means "member", because blbd.js will
+      // silently refresh it rather than log the person out.
+      if (s && s.access_token && (!s.expires_at || Date.now() / 1000 < s.expires_at)) {
+        state = 'member';
+      }
+    }
+  } catch (e) {}
+  document.documentElement.setAttribute('data-blbd-auth', state);
+
+  // Safety net. This snippet hides UI optimistically and trusts blbd.js to
+  // confirm. If blbd.js never loads (network failure, blocked script, bad
+  // deploy), a member would otherwise be stuck with a permanently hidden
+  // nav and no avatar to replace it. Falling back to 'guest' restores the
+  // plain signed-out nav — i.e. the pre-fix behaviour, which is degraded
+  // but never broken. No security implication: real gating is Postgres RLS.
+  if (state === 'member') {
+    setTimeout(function () {
+      if (!window.BLBD) document.documentElement.setAttribute('data-blbd-auth', 'guest');
+    }, 5000);
+  }
+})();
+</script>
+<style>
+  /* Members: hide the nav signup CTA before first paint.
+     Scoped to the navbar on purpose — `.button-primary` is a generic
+     Webflow style class, and hiding every instance of it site-wide would
+     also hide unrelated CTAs if the design team reuses the class later.
+     `display:none` (not `visibility:hidden`) matches what blbd.js does
+     when it takes the button over, so there's no layout shift on handoff. */
+  html[data-blbd-auth="member"] .navbar-no-shadow .button-primary,
+  html[data-blbd-auth="member"] nav .button-primary,
+  html[data-blbd-auth="member"] [data-blbd-join],
+  html[data-blbd-auth="member"] [data-blbd-join-hidden] {
+    display: none !important;
+  }
+
+  /* Guests: anything explicitly marked member-only starts hidden, so it
+     can't flash in the other direction either. */
+  html[data-blbd-auth="guest"] [data-blbd="member-only"] {
+    display: none !important;
+  }
+</style>

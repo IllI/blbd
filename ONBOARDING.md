@@ -9,6 +9,10 @@ in the folder, paste one prompt. Claude Code auto-reads `CLAUDE.md` and
 `SKILLS.md` from the repo root on its own — you don't have to explain the
 project, just tell it to go read them.
 
+> Using a ChatGPT subscription instead of Claude Code? See
+> [`ONBOARDING-CODEX.md`](./ONBOARDING-CODEX.md) — same repo, same rules,
+> OpenAI's Codex CLI instead.
+
 ---
 
 ## 1 · Install the tools

@@ -42,5 +42,6 @@ next-env.d.ts
 
 # Local secrets
 .supabase-db-password.txt
+.secrets/
 
 .vercel

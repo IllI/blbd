@@ -1,0 +1,83 @@
+{
+  "bugForm": {
+    "formId": "1qBhay8ZV_t5vH4zJGZvp024BTjIm0Q0sp0A_9LB9GgM",
+    "title": "BLBD Bug Report",
+    "editUrl": "https://docs.google.com/forms/d/1qBhay8ZV_t5vH4zJGZvp024BTjIm0Q0sp0A_9LB9GgM/edit",
+    "responderUri": "https://docs.google.com/forms/d/e/1FAIpQLSeaAJWh749W9HKd3xc9ZfAAZkuRi1XigrugSPQo8o7IWpH2Sg/viewform",
+    "questions": [
+      {
+        "id": "2d822e82",
+        "title": "Your name"
+      },
+      {
+        "id": "468aab9b",
+        "title": "Your email"
+      },
+      {
+        "id": "2e089af8",
+        "title": "Where did this happen?"
+      },
+      {
+        "id": "279e74a2",
+        "title": "Bug summary (one line)"
+      },
+      {
+        "id": "76daaf12",
+        "title": "What happened?"
+      },
+      {
+        "id": "3cac6cef",
+        "title": "What did you expect to happen?"
+      },
+      {
+        "id": "5575d6bc",
+        "title": "Steps to reproduce"
+      },
+      {
+        "id": "2931dc1b",
+        "title": "Priority"
+      },
+      {
+        "id": "77cb1454",
+        "title": "Link or screenshot (optional)"
+      }
+    ]
+  },
+  "featureForm": {
+    "formId": "1ppBVKS3HEb7dCYjLsLJKchtduuM6_gj-q4Fw5ITS3jQ",
+    "title": "BLBD Feature Request",
+    "editUrl": "https://docs.google.com/forms/d/1ppBVKS3HEb7dCYjLsLJKchtduuM6_gj-q4Fw5ITS3jQ/edit",
+    "responderUri": "https://docs.google.com/forms/d/e/1FAIpQLSf_eTTJzaAhfEbfR5IYJhMG4jCEKmhcyhwyHx5QUate3cLdBA/viewform",
+    "questions": [
+      {
+        "id": "141a9658",
+        "title": "Your name"
+      },
+      {
+        "id": "5a0b790d",
+        "title": "Your email"
+      },
+      {
+        "id": "0cce3e50",
+        "title": "Feature title (one line)"
+      },
+      {
+        "id": "6e9ec3a8",
+        "title": "What problem does this solve?"
+      },
+      {
+        "id": "6b9b6002",
+        "title": "Describe the feature"
+      },
+      {
+        "id": "0172f1dc",
+        "title": "How much do you want this?"
+      },
+      {
+        "id": "56d4602a",
+        "title": "Area"
+      }
+    ]
+  },
+  "targetSpreadsheetId": "1ejvtm2G5Qk_dircWzGpjvgYwYstELg1BsJJRgHOqtCk"
+}

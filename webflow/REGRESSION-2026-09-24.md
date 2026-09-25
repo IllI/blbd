@@ -3,7 +3,7 @@
 Migration writes are paused pending resolution and functional verification.
 
 Recovery was authorized by the owner. The Management API accepted a resume
-request for the existing project; its latest observed status is `COMING_UP`.
+request for the existing project; it is now `ACTIVE_HEALTHY`.
 Vercel CLI needs a fresh account login before the isolated SDK deployment.
 Do not confuse the passing PR preview deployment with the live SDK alias.
 
@@ -34,7 +34,13 @@ Read-only `supabase projects list --output json` reports the linked BLBD
 project `ihghsacsxvibtwoiyjag` as `INACTIVE`. Both Node fetch and Windows DNS
 lookup fail to resolve its configured `*.supabase.co` hostname. Profile and
 avatar storage requests cannot succeed at that endpoint. No profile records
-or stored images could be inspected; their preservation is not yet verified.
+or stored images could be inspected during the outage.
+
+After recovery, profile records are readable and the existing stored avatar
+returns HTTP 200 with PNG content. Auth health also returns HTTP 200. Public
+auth settings allow email signup with confirmation, but list only email as
+enabled: Google/Yahoo flows are not currently configured as enabled providers.
+End-to-end signed-in browser testing remains outstanding.
 
 No migration operation modified Supabase, authentication configuration, or
 SDK code before this incident investigation. No Webflow publication occurred.

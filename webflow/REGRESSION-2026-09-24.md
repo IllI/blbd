@@ -2,6 +2,11 @@
 
 Migration writes are paused pending resolution and functional verification.
 
+Recovery was authorized by the owner. The Management API accepted a resume
+request for the existing project; its latest observed status is `COMING_UP`.
+Vercel CLI needs a fresh account login before the isolated SDK deployment.
+Do not confuse the passing PR preview deployment with the live SDK alias.
+
 ## Confirmed guest homepage defect
 
 The published homepage stays at `/`, with its content still in the DOM, but

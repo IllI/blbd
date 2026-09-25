@@ -1,5 +1,9 @@
 # Original BLBD design migration
 
+Latest Designer draft edits, page inventory, and CLI-only continuation limits:
+see `DESIGNER-CHECKPOINT.md`. Chrome access is now available; the user has
+requested stopping expensive browser automation in favor of compact CLI work.
+
 Tracking: https://github.com/IllI/blbd/issues/2
 
 Source: `blbd` (`693b4fc98a599c12cbf30e36`). Destination: `blbd-2`

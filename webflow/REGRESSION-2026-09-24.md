@@ -1,11 +1,16 @@
 # Guest homepage and avatar incident
 
-Migration writes are paused pending resolution and functional verification.
+The guest-homepage/backend recovery gate passed. Full signed-in functional
+and social-login checks remain required before completing the migration.
 
 Recovery was authorized by the owner. The Management API accepted a resume
 request for the existing project; it is now `ACTIVE_HEALTHY`.
-Vercel CLI needs a fresh account login before the isolated SDK deployment.
-Do not confuse the passing PR preview deployment with the live SDK alias.
+Vercel login was renewed. The initial local-worktree deployment was BLOCKED
+because Vercel could not authorize its Git author metadata. No permissions or
+author identities were changed. Redeploying the existing GitHub-linked preview
+of the exact same commit `9442784` with the production target succeeded:
+`https://blbd-gmbvfjgbm-illi1s-projects.vercel.app`.
+Both `blbd-life.vercel.app` and `blbd-staging.vercel.app` now point there.
 
 ## Confirmed guest homepage defect
 
@@ -26,7 +31,11 @@ root state remains available to CSS. Frozen SDK versions are unchanged.
 Validation: `node --test scripts/test-sdk-state.mjs` passes four guest/free/
 supporter/member cases, including repeated state application and content gates.
 `node --check public/blbd.js` and `npm run build` pass (existing unused Alert
-import warning). The fix has not been deployed or verified live yet.
+import warning). Production build passed and both live SDK URLs contain the
+fix. Browser verification on `blbd-2.webflow.io` confirmed the guest homepage
+remains visible (`html` display block, no aria-hidden), Join BLBD opens the
+email signup form, and `/members` redirects guests to `/login?next=%2Fmembers`.
+No test accounts were created and signup confirmation was not exercised.
 
 ## Backend outage and profile images
 
@@ -47,11 +56,8 @@ SDK code before this incident investigation. No Webflow publication occurred.
 
 ## Required recovery checks
 
-- Restore/resume the existing Supabase project with the owner's approval;
-  do not create a replacement project or reset the database.
-- Check existing profile avatar URLs and storage object responses after resume.
-- Deploy the isolated SDK fix with approval; no Webflow publication is needed
-  while the live site uses the unversioned SDK URL.
+- Completed: resume existing project, verify stored avatar, deploy isolated
+  SDK fix, verify public homepage/signup navigation and guest member redirect.
 - Verify guest home, login/signup, member redirects, Google/Yahoo requirements,
   avatar rendering and member functionality against the restored backend.
 - Keep migration PR #3 in draft until the functional checks pass.

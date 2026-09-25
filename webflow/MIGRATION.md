@@ -156,4 +156,9 @@ Migration writes were paused after the guest-homepage and avatar incident.
 See `REGRESSION-2026-09-24.md`. Do not resume remote migration writes until the
 SDK fix is live and the existing Supabase backend/profile images are verified.
 User approval to resume Supabase and deploy the isolated SDK fix was received;
-that approval does not authorize whole-site Webflow publication.
+that approval does not authorize whole-site Webflow publication. Recovery is
+now verified: production SDK fix is live, guest home/signup navigation and
+member redirects work, and the restored backend serves the existing avatar.
+CLI preservation checks and font checks also pass. Page/layout work still
+requires source Designer/MCP access; signed-in and social-login verification
+remains outstanding.

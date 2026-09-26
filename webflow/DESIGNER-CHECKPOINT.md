@@ -1,8 +1,8 @@
 # Designer checkpoint — 2026-09-25
 
-Tracking: issue #2 / draft PR #3. Browser access now works through connected
-Chrome, but the user requested CLI-first work to control usage. Do not resume
-large browser snapshots or replay the completed Designer inspection.
+Tracking: issue #2 / draft PR #3. Webflow's hosted MCP 2.1 is authenticated and
+supports compact Designer reads/writes without browser snapshots. Prefer it and
+the CLI for migration work; do not replay the completed browser inspection.
 
 ## Applied destination draft edits
 
@@ -22,6 +22,7 @@ published. Persisted state after a full Designer reload has not been checked.
 | Shared Footer | Join | `https://join` | `/join` |
 | Shared Footer | Blog | `#` | `/blog` |
 | Shared Footer | Contact | `#` | `/contact` |
+| Shared Footer | Logo wrapper | source Home page | destination Home page |
 
 Webflow reports 11 instances of the shared Footer. Existing contact details,
 styles, navbar, membership scripts, forms, and auth/payment bindings were not
@@ -29,8 +30,32 @@ changed. Source `/author` links were mapped to the existing destination
 `/about-us` route; the destination's real Contact page was retained instead of
 the source's Coming Soon route.
 
-The footer logo link wrapper was selected but **not changed**. It still needs
-its `#` link corrected. Legal/admin links were not repointed to missing pages.
+The shared Footer logo wrapper was corrected through MCP and read back as a
+destination Home page link. Legal/admin links were not repointed to missing
+pages.
+
+The destination Blog page's three existing category tabs/list wrappers were
+preserved. Their previously empty CMS item slots now contain cards matching the
+source structure, with image, image alt text, category name, title, summary,
+and collection-page links bound to the destination Blog Posts collection. The
+lists are filtered, in existing page order, to Mental Health and Wellness,
+Social Media and Online Presence, and Career Paths and Entrepreneurship. The
+new card styles are local to the destination draft. All bindings, list sources,
+and filters were read back successfully. Nothing was published.
+
+The public Blog Posts template retained its existing destination layout. Its
+placeholder category, heading, hero image, image alt text, and rich-text body
+now bind to the destination Blog Posts collection. The destination Navbar and
+the corrected shared Footer were added around the template and their root order
+was read back as Navbar, article content, Footer.
+
+The Member Blogs template was an empty body. It now has a source-inspired
+article shell using existing destination styles, bound to the destination
+Member Blogs category, name, main image, alt text, and post body fields. The
+article section carries `data-blbd="member-only"` so the current membership SDK
+continues to gate it; the existing Navbar and corrected shared Footer surround
+the section. All bindings, the gate attribute, and root component order were
+read back successfully. No scripts, auth forms, or access rules were replaced.
 
 ## Observed page inventory
 
@@ -48,25 +73,27 @@ Upcoming Events, Goals, Login, a second entry named Members, Coming Soon.
 The duplicate Members labels need slug inspection before any change.
 
 Destination CMS templates: Blog Categories, Blog Categories Premia,
-Member Blogs, Blog Posts. Their content is migrated; template layouts are not
-yet ported/verified. The homepage already contains much of the source layout;
-do not replace it wholesale.
+Member Blogs, Blog Posts. Blog Posts and Member Blogs are now bound and
+structurally verified; the two category templates remain to review. The
+homepage already contains much of the source layout; do not replace it
+wholesale.
 
-## CLI-only continuation boundary
+## CLI/MCP continuation boundary
 
 Run `node scripts/verify-webflow-migration.mjs` for a compact, read-only CMS
 preservation check, and `node scripts/migrate-webflow-fonts.mjs` to verify fonts.
 Transfers have already completed; do not repeat writes merely to show progress.
 Keep full command output in local logs and report only counts/errors.
 
-Installed Webflow CLI 2.2.0 has CMS/assets/sites commands but no Designer page
-layout-copy commands. The CLI credential returns HTTP 403 for page requests.
-A Chrome login does not expand those API scopes. Page structure/styles still
-require an appropriate authorized Designer/MCP capability or a separately
-approved, tightly bounded UI workflow. Do not invent private API endpoints or
-extract browser session credentials to work around this boundary.
+Installed Webflow CLI 2.2.0 remains the preferred path for CMS/assets/sites.
+Its credential returns HTTP 403 for page requests, but the separately
+authenticated hosted Webflow MCP can now inspect and modify page structure,
+settings, styles, components, and CMS bindings. Use compact queries and verify
+every write by reading it back. Do not invent private API endpoints or extract
+browser session credentials.
 
-Remaining work: source-only pages, CMS layouts and bindings, footer/logo/legal
-links, responsive comparison, signed-in portal checks and Google/Yahoo setup.
+Remaining work: source-only pages, category-template layouts and bindings,
+legal links, responsive comparison, signed-in portal checks and Google/Yahoo
+setup.
 Ordinary email signup must remain supported. Whole-site Webflow publication
 still requires separate approval.

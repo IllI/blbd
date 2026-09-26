@@ -1,8 +1,8 @@
 # Original BLBD design migration
 
-Latest Designer draft edits, page inventory, and CLI-only continuation limits:
-see `DESIGNER-CHECKPOINT.md`. Chrome access is now available; the user has
-requested stopping expensive browser automation in favor of compact CLI work.
+Latest Designer draft edits, page inventory, and CLI/MCP continuation limits:
+see `DESIGNER-CHECKPOINT.md`. Webflow's hosted MCP 2.1 is authenticated; use it
+and the CLI instead of expensive browser automation.
 
 Tracking: https://github.com/IllI/blbd/issues/2
 
@@ -166,3 +166,28 @@ member redirects work, and the restored backend serves the existing avatar.
 CLI preservation checks and font checks also pass. Page/layout work still
 requires source Designer/MCP access; signed-in and social-login verification
 remains outstanding.
+
+## Designer integration on 2026-09-25
+
+Hosted Webflow MCP access enabled compact inspection and surgical draft edits
+without replacing destination pages. The shared Footer's logo now targets the
+destination Home page; the previously corrected Home, About, Join, Blog, and
+Contact links remain intact across its 11 instances.
+
+The destination Blog page retained its existing tab/list layout. Three empty
+CMS item slots now use source-equivalent cards bound to destination Blog Posts
+fields for thumbnail, alt text, category name, title, summary, and collection
+page. Their list wrappers point to the destination collection and filter to the
+corresponding destination category IDs. Read-back verification confirmed all
+sources, filters, links, and bindings. No site publication occurred.
+
+The destination public Blog Posts template now resolves category, title, main
+image, image alt text, and rich-text body from the destination collection. Its
+existing layout was preserved and the destination Navbar/Footer were restored.
+
+The destination Member Blogs template was empty. It now contains a compact
+source-inspired article layout using existing destination styles and fields,
+wrapped by the same Navbar/Footer. The article surface is explicitly marked
+`data-blbd="member-only"` for the existing SDK instead of importing the source
+site's legacy membership behavior. Read-back verification confirmed every CMS
+binding, the gate attribute, and component order. Nothing was published.

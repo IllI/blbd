@@ -57,6 +57,16 @@ continues to gate it; the existing Navbar and corrected shared Footer surround
 the section. All bindings, the gate attribute, and root component order were
 read back successfully. No scripts, auth forms, or access rules were replaced.
 
+Both category templates were also empty bodies. Each now has a source-inspired
+category heading and Blog grid using the destination collection, card styles,
+and fields. The public template binds to Blog Categories and Blog Posts; the
+premium template binds to Blog Categories Premia and Member Blogs and carries
+`data-blbd="member-only"`. Their list sources, card links, thumbnails, alt text,
+category names, titles, summaries, gate state, and Navbar/content/Footer order
+were all read back. The source category templates do not filter their post
+lists by the current category, so the destination intentionally matches that
+behavior instead of inventing a filter.
+
 ## Observed page inventory
 
 Source static pages: Home, Home Premium, About Us, Join, Blog, Coming Soon,
@@ -73,10 +83,9 @@ Upcoming Events, Goals, Login, a second entry named Members, Coming Soon.
 The duplicate Members labels need slug inspection before any change.
 
 Destination CMS templates: Blog Categories, Blog Categories Premia,
-Member Blogs, Blog Posts. Blog Posts and Member Blogs are now bound and
-structurally verified; the two category templates remain to review. The
-homepage already contains much of the source layout; do not replace it
-wholesale.
+Member Blogs, Blog Posts. All four are now bound and structurally verified in
+the destination draft. The homepage already contains much of the source
+layout; do not replace it wholesale.
 
 ## CLI/MCP continuation boundary
 
@@ -92,8 +101,7 @@ settings, styles, components, and CMS bindings. Use compact queries and verify
 every write by reading it back. Do not invent private API endpoints or extract
 browser session credentials.
 
-Remaining work: source-only pages, category-template layouts and bindings,
-legal links, responsive comparison, signed-in portal checks and Google/Yahoo
-setup.
+Remaining work: source-only pages, legal links, responsive comparison,
+signed-in portal checks and Google/Yahoo setup.
 Ordinary email signup must remain supported. Whole-site Webflow publication
 still requires separate approval.

@@ -191,3 +191,14 @@ wrapped by the same Navbar/Footer. The article surface is explicitly marked
 `data-blbd="member-only"` for the existing SDK instead of importing the source
 site's legacy membership behavior. Read-back verification confirmed every CMS
 binding, the gate attribute, and component order. Nothing was published.
+
+The two destination category templates were also empty. They now use the
+source's category-heading and Blog-grid pattern, bound respectively to the
+destination public and member category/post collections. Each card resolves
+its link, thumbnail, alt text, category, title, and summary from the matching
+post collection. The premium category content is marked member-only; the public
+category content is not gated. The source lists show all posts rather than
+filtering by the current category, and the destination preserves that behavior.
+Read-back verification confirmed the CMS sources, bindings, gate state, and
+Navbar/content/Footer order. All four destination CMS templates are now
+structurally migrated in draft.

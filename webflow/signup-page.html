@@ -1,47 +1,51 @@
 <!--
-  BLBD — Login page
+  BLBD — Sign Up page
   ===================================================================
   Source-design composition with the destination authentication hooks.
   Keep data-blbd-form, data-blbd-input, and data-blbd-oauth attributes:
   public/blbd.js owns their behavior.
-
-  Google/Facebook buttons remain wired to the currently implemented provider
-  names. Provider availability is controlled in Supabase; failed or disabled
-  providers surface a real form message instead of failing silently.
 -->
-<section class="blbd-login">
-  <div class="blbd-login__card">
-    <h1 class="blbd-login__heading">Log in</h1>
+<section class="blbd-signup">
+  <div class="blbd-signup__card">
+    <h1 class="blbd-signup__heading">Sign up</h1>
 
-    <form data-blbd-form="login" class="blbd-login__form">
-      <label class="blbd-login__field">
+    <form data-blbd-form="signup" class="blbd-signup__form">
+      <label class="blbd-signup__field">
         <span>Email</span>
         <input data-blbd-input="email" type="email" name="email" autocomplete="email" required />
       </label>
 
-      <label class="blbd-login__field">
+      <label class="blbd-signup__field">
+        <span>Name</span>
+        <input data-blbd-input="name" type="text" name="name" autocomplete="name" required />
+      </label>
+
+      <label class="blbd-signup__field">
         <span>Password</span>
         <input
           data-blbd-input="password"
           type="password"
           name="password"
-          autocomplete="current-password"
+          autocomplete="new-password"
           required
         />
       </label>
 
-      <a class="blbd-login__forgot" href="https://blbd-life.vercel.app/forgot-password">
-        Forgot your password?
-      </a>
+      <label class="blbd-signup__check">
+        <input data-blbd-input="consent" type="checkbox" name="consent" required />
+        <span>
+          By creating an account, I agree to the BLBD account terms and privacy policy.
+        </span>
+      </label>
 
-      <div data-blbd-input="message" class="blbd-login__message" role="alert" hidden></div>
+      <div data-blbd-input="message" class="blbd-signup__message" role="alert" hidden></div>
 
-      <button type="submit" class="blbd-login__submit">Log in</button>
+      <button type="submit" class="blbd-signup__submit">Sign up</button>
 
-      <div class="blbd-login__divider"><span>or</span></div>
+      <div class="blbd-signup__divider"><span>or</span></div>
 
-      <div class="blbd-login__social">
-        <a href="#" data-blbd-oauth="google" class="blbd-login__social-btn">
+      <div class="blbd-signup__social">
+        <a href="#" data-blbd-oauth="google" class="blbd-signup__social-btn">
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
             <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62Z" />
             <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.34A9 9 0 0 0 9 18Z" />
@@ -50,7 +54,7 @@
           </svg>
           Google
         </a>
-        <a href="#" data-blbd-oauth="facebook" class="blbd-login__social-btn">
+        <a href="#" data-blbd-oauth="facebook" class="blbd-signup__social-btn">
           <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="#1877F2" d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.96h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07Z" />
           </svg>
@@ -59,19 +63,19 @@
       </div>
     </form>
 
-    <p class="blbd-login__footer">
-      Don't have an account? <a href="/sign-up">Sign up</a>
+    <p class="blbd-signup__footer">
+      Already have an account? <a href="/login">Log in</a>
     </p>
   </div>
 </section>
 
 <style>
-  .blbd-login,
-  .blbd-login * { box-sizing: border-box; }
+  .blbd-signup,
+  .blbd-signup * { box-sizing: border-box; }
 
-  .blbd-login {
+  .blbd-signup {
     display: grid;
-    min-height: 600px;
+    min-height: 760px;
     place-items: center;
     padding: 64px 24px;
     background: linear-gradient(112deg, #05cf70 0%, #28afaf 30%, #6e70f2 66%, #d7d8ff 100%);
@@ -79,7 +83,7 @@
     font-family: 'Poppins', sans-serif;
   }
 
-  .blbd-login__card {
+  .blbd-signup__card {
     width: min(100%, 500px);
     padding: 56px 40px 40px;
     border: 1px solid #26051e;
@@ -88,7 +92,7 @@
     box-shadow: 0 16px 50px rgba(38, 5, 30, 0.08);
   }
 
-  .blbd-login__heading {
+  .blbd-signup__heading {
     margin: 0 0 26px;
     font-size: clamp(40px, 6vw, 54px);
     font-weight: 500;
@@ -96,10 +100,10 @@
     text-align: center;
   }
 
-  .blbd-login__form { display: flex; flex-direction: column; gap: 12px; }
-  .blbd-login__field { display: flex; flex-direction: column; gap: 5px; font-size: 15px; }
-  .blbd-login__field span { font-weight: 700; }
-  .blbd-login__field input {
+  .blbd-signup__form { display: flex; flex-direction: column; gap: 12px; }
+  .blbd-signup__field { display: flex; flex-direction: column; gap: 5px; font-size: 15px; }
+  .blbd-signup__field span { font-weight: 700; }
+  .blbd-signup__field input {
     width: 100%;
     min-height: 46px;
     padding: 10px 16px;
@@ -109,38 +113,36 @@
     color: #26051e;
     font: inherit;
   }
-  .blbd-login__field input:focus {
+  .blbd-signup__field input:focus {
     outline: none;
     border-color: #665ff2;
     box-shadow: 0 0 0 3px rgba(102, 95, 242, 0.18);
   }
 
-  .blbd-login__forgot {
-    align-self: flex-end;
-    color: #26051e;
-    font-size: 12px;
-    text-decoration: underline;
-  }
-
-  .blbd-login__message {
-    padding: 9px 12px;
-    border-radius: 10px;
+  .blbd-signup__check {
+    display: grid;
+    align-items: start;
+    grid-template-columns: 18px 1fr;
+    gap: 8px;
     font-size: 13px;
+    line-height: 1.45;
   }
-  .blbd-login__message[data-blbd-tone='error'] {
+  .blbd-signup__check input { width: 16px; height: 16px; margin-top: 2px; accent-color: #05cf70; }
+
+  .blbd-signup__message { padding: 9px 12px; border-radius: 10px; font-size: 13px; }
+  .blbd-signup__message[data-blbd-tone='error'] {
     border: 1px solid rgba(242, 82, 96, 0.3);
     background: #fdecee;
     color: #99323c;
   }
-  .blbd-login__message[data-blbd-tone='success'] {
+  .blbd-signup__message[data-blbd-tone='success'] {
     border: 1px solid rgba(16, 185, 129, 0.3);
     background: #e8f8f2;
     color: #0b6b50;
   }
 
-  .blbd-login__submit {
+  .blbd-signup__submit {
     min-height: 40px;
-    margin-top: 2px;
     border: 0;
     border-radius: 999px;
     background: #05cf70;
@@ -149,9 +151,9 @@
     font: inherit;
     font-weight: 500;
   }
-  .blbd-login__submit:hover { background: #00bd64; }
+  .blbd-signup__submit:hover { background: #00bd64; }
 
-  .blbd-login__divider {
+  .blbd-signup__divider {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -161,16 +163,16 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
-  .blbd-login__divider::before,
-  .blbd-login__divider::after {
+  .blbd-signup__divider::before,
+  .blbd-signup__divider::after {
     flex: 1;
     height: 1px;
     background: rgba(38, 5, 30, 0.18);
     content: '';
   }
 
-  .blbd-login__social { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .blbd-login__social-btn {
+  .blbd-signup__social { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .blbd-signup__social-btn {
     display: flex;
     min-height: 40px;
     align-items: center;
@@ -185,21 +187,21 @@
     font-weight: 600;
     text-decoration: none;
   }
-  .blbd-login__social-btn:hover { background: rgba(255, 255, 255, 0.7); }
+  .blbd-signup__social-btn:hover { background: rgba(255, 255, 255, 0.7); }
 
-  .blbd-login__footer {
+  .blbd-signup__footer {
     display: flex;
     justify-content: space-between;
     gap: 16px;
     margin: 18px 0 0;
     font-size: 14px;
   }
-  .blbd-login__footer a { color: #26051e; text-decoration: underline; }
+  .blbd-signup__footer a { color: #26051e; text-decoration: underline; }
 
   @media (max-width: 600px) {
-    .blbd-login { min-height: calc(100dvh - 90px); padding: 32px 16px; }
-    .blbd-login__card { padding: 40px 22px 30px; }
-    .blbd-login__social { grid-template-columns: 1fr; }
-    .blbd-login__footer { align-items: flex-start; flex-direction: column; }
+    .blbd-signup { min-height: calc(100dvh - 90px); padding: 32px 16px; }
+    .blbd-signup__card { padding: 40px 22px 30px; }
+    .blbd-signup__social { grid-template-columns: 1fr; }
+    .blbd-signup__footer { align-items: flex-start; flex-direction: column; }
   }
 </style>

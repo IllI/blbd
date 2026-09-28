@@ -80,27 +80,25 @@ Existing Webflow sites on `/v1/blbd.js` are unaffected until someone
 deliberately edits their footer code to point at `/v6/blbd.js` — a version
 never changes out from under a site that's already pinned to it.
 
-### Building the login page
+### Login and signup pages
 
-`blbd-2` doesn't have a `/login` page yet, and — confirmed by checking the
-Webflow CLI (`webflow sites --help`: only `list / get / domains / publish`,
-nothing for pages) — there is no API that can create it for you. That one
-step has to happen by hand in the Designer, everything else is a paste:
+`blbd-2` has `/login` and `/sign-up` pages. Their source-controlled Embed
+artifacts are **[login-page.html](./login-page.html)** and
+**[signup-page.html](./signup-page.html)**. Apply changes through the hosted
+Webflow MCP, then read the Embed code back and compare it byte-for-byte before
+publishing. The shared Navbar and Footer stay as Webflow components around the
+Embeds.
 
-1. Webflow Designer → **Pages panel → + → Page**, name it **Login**, set the
-   slug to **`login`** (matches the "Login here" link already on the signup
-   page — zero extra edits).
-2. Drop an **Embed** element onto the page.
-3. Paste the entire contents of **[login-page.html](./login-page.html)** into
-   it.
-4. Publish.
+Both artifacts are self-contained and use `data-blbd-form`,
+`data-blbd-input`, and `data-blbd-oauth`; `public/blbd.js` owns their behavior.
+They do not depend on Memberstack's injected classes. Google/Facebook controls
+are wired but only succeed when those providers are enabled in Supabase. Email
+and password remain the ordinary signup path, including required privacy
+consent and confirmation messaging.
 
-That file is self-contained — its own CSS, doesn't touch or depend on
-Memberstack's classes (which only exist while Memberstack's script is still
-running — see note below), and its Google/Facebook buttons are fully wired.
-They'll error with a clear "not enabled yet" message until those providers
-are turned on in Supabase (SETUP.md §1c) — a real, working placeholder rather
-than a dead button.
+The former split-screen Sign Up block is intentionally hidden rather than
+deleted in the Designer, providing a reversible rollback while the new Embed
+is validated.
 
 > **Why not reuse the signup page's `.ms-input` / `.ms-button` styling?**
 > Those classes aren't in the site's own stylesheet — they only exist because

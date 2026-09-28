@@ -67,6 +67,23 @@ were all read back. The source category templates do not filter their post
 lists by the current category, so the destination intentionally matches that
 behavior instead of inventing a filter.
 
+The destination Login page now matches the source page's composition: the
+green-to-violet hero, centered bordered card, `Log in` heading, rounded fields,
+primary green action, signup prompt, and the shared destination Footer. The
+existing destination implementation was restyled rather than replaced. Its
+email/password form selectors, error-message selector, Google and Facebook
+OAuth selectors, `/sign-up` link, and portal password-reset link were all read
+back from the Designer after the write. The final root order is Navbar, Login
+embed, Footer. This remains a draft-only Designer change.
+
+The destination Sign Up page also used an unrelated split-screen template.
+A source-styled gradient/card signup embed now supplies name, email, password,
+required privacy consent, confirmation/error messaging, Google and Facebook
+OAuth selectors, and the `/login` link. Its code was read back byte-for-byte.
+The old structured signup block was hidden, not deleted, so it remains a
+reversible rollback layer. Final root order is Navbar, new Sign Up embed,
+hidden legacy block, Footer.
+
 ## Observed page inventory
 
 Source static pages: Home, Home Premium, About Us, Join, Blog, Coming Soon,
@@ -87,6 +104,31 @@ Member Blogs, Blog Posts. All four are now bound and structurally verified in
 the destination draft. The homepage already contains much of the source
 layout; do not replace it wholesale.
 
+### Source-to-destination coverage gaps
+
+The two sites do not have one-to-one page ownership. The original site's
+Webflow Memberships utility pages must not be copied over the current Supabase
+membership layer. Their user journeys map as follows:
+
+| Source surface | Destination owner | Status |
+| --- | --- | --- |
+| `/log-in` | Webflow `/login` + `public/blbd.js` | Restyled and structurally verified in draft |
+| `/sign-up` | Webflow `/sign-up` + `public/blbd.js` | Source-styled embed verified; legacy form retained hidden for rollback |
+| `/reset-password` | Portal `/forgot-password` | Login now links to the portal flow; no duplicate Webflow form |
+| `/update-password` | Portal `/auth/confirm` and recovery flow | Preserve portal implementation; validate end-to-end before release |
+| `/access-denied` | Membership guard/login redirect | No direct copy; validate logged-out and insufficient-access states |
+| `/user-account` | Portal `/settings` and `/profile` | No direct copy; profile images and account editing require portal regression testing |
+| `/home-premium` | Destination member surfaces | Not copied wholesale; requires content-by-content reconciliation |
+| `/privacy-policy` | New destination legal content | Missing; source content is template boilerplate and is not safe to publish as BLBD policy |
+| `/admin/*` | Internal design documentation | Template support pages, not public migration targets |
+| legacy checkout pages | Current Stripe/Supabase membership flow | Intentionally not migrated |
+
+The destination also contains product pages absent from the source (Members,
+Member Blog, User Examples, Resources, Features, Community, Contact, Profile,
+Upcoming Events, and Goals). Preserve these extensions while reconciling
+source content. Page-count parity is therefore not the success criterion;
+complete user journeys and intentional content ownership are.
+
 ## CLI/MCP continuation boundary
 
 Run `node scripts/verify-webflow-migration.mjs` for a compact, read-only CMS
@@ -101,7 +143,12 @@ settings, styles, components, and CMS bindings. Use compact queries and verify
 every write by reading it back. Do not invent private API endpoints or extract
 browser session credentials.
 
-Remaining work: source-only pages, legal links, responsive comparison,
-signed-in portal checks and Google/Yahoo setup.
+Remaining work: reconcile Home Premium content, replace the source placeholder
+privacy copy with approved legal content, compare Login and Sign Up responsively
+after publication, and run signed-out/signed-in portal regressions including
+profile images.
+Google remains wired in the page code; Yahoo is not an implemented Supabase
+provider and needs an explicit provider/identity design before it can be called
+supported.
 Ordinary email signup must remain supported. Whole-site Webflow publication
 still requires separate approval.

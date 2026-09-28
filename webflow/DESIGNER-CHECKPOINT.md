@@ -72,7 +72,7 @@ green-to-violet hero, centered bordered card, `Log in` heading, rounded fields,
 primary green action, signup prompt, and the shared destination Footer. The
 existing destination implementation was restyled rather than replaced. Its
 email/password form selectors, error-message selector, Google and Facebook
-OAuth selectors, `/sign-up` link, and portal password-reset link were all read
+OAuth selectors, `/sign-up` link, and working portal password-reset link were all read
 back from the Designer after the write. The final root order is Navbar, Login
 embed, Footer. This remains a draft-only Designer change.
 
@@ -114,7 +114,7 @@ membership layer. Their user journeys map as follows:
 | --- | --- | --- |
 | `/log-in` | Webflow `/login` + `public/blbd.js` | Restyled and structurally verified in draft |
 | `/sign-up` | Webflow `/sign-up` + `public/blbd.js` | Source-styled embed verified; legacy form retained hidden for rollback |
-| `/reset-password` | Portal `/forgot-password` | Login now links to the portal flow; no duplicate Webflow form |
+| `/reset-password` | Portal `/forgot-password` | Login links to the working production Vercel alias until `app.blbd.life` DNS exists |
 | `/update-password` | Portal `/auth/confirm` and recovery flow | Preserve portal implementation; validate end-to-end before release |
 | `/access-denied` | Membership guard/login redirect | No direct copy; validate logged-out and insufficient-access states |
 | `/user-account` | Portal `/settings` and `/profile` | No direct copy; profile images and account editing require portal regression testing |

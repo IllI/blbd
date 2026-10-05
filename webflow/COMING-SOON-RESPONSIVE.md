@@ -1,87 +1,76 @@
-# Original Coming Soon responsive draft — 2026-10-05
+# Original Coming Soon — mobile-only correction
 
-Applied to **BLBD original**, site `693b4fc98a599c12cbf30e36`, page
-`693b4fcb8a599c12cbf30eca`. This is the page intended for the temporary
-blbd.life homepage, not the beta Coming Soon page.
+Original BLBD site `693b4fc98a599c12cbf30e36`, Coming Soon page
+`693b4fcb8a599c12cbf30eca`. Draft edits only; no publication, homepage
+assignment, domain, membership/auth, or beta-site changes.
 
-## Scope and status
+## Desktop restoration
 
-Native Designer draft edits are already applied. No Webflow publish,
-homepage assignment, domain change, auth change, or Vercel deployment was
-performed. Merging the tracking PR does not apply or publish these edits.
+The initial responsive pass replaced class chains and changed heading levels,
+affecting the desktop design. That pass is superseded. Original element class
+chains and heading levels were restored directly from the pre-edit native
+tree, not recreated from screenshots. Original shared classes were never
+deleted or edited. The saved Story title's inline Strong wrapper and exact
+punctuation were restored; only that previously removed Strong/String pair
+requires newly generated node IDs. All other original nodes stay in place.
 
-The page now uses 24 isolated `CS ...` classes rather than changing shared
-Section/Content/Heading/Image classes used on other pages. Three content
-grids have bounded desktop columns and a single-column tablet/phone layout.
-Headings scale using rem-based `clamp`, content can shrink inside grids,
-and long words cannot force horizontal overflow. Photography uses full-width
-responsive sizing and rounded corners; the hero has an intentional desktop
-portrait/mobile landscape crop. The original sunset image keeps its ratio.
+The original logo/header, two-column desktop layout, photography, typography,
+gradients, spacing, orange submit button, and rounded transparent inputs remain.
+Old `CS ...` classes are left unattached rather than deleted.
 
-The logo/header, section spacing, reading
-line-height, closing copy, and centered update form were polished. Inputs
-use 16px text and at least 48px height at normal text size, and keyboard focus
-indicators are explicit. One primary H1 remains, followed by section headings.
-Only an absent space after `Dying:` was corrected in the existing copy.
+## Phone-only patch
 
-Follow-up: restored the original full-height green/white/lavender gradient.
-`CS Page` now has a transparent background and `CS Hero` has no separate
-gradient. The existing `Main Wrapper` gradient remains unchanged and shows
-continuously behind the header, hero, story, mission, update form, and footer.
-Responsive sizing and all content/form settings are unchanged.
+`coming-soon-responsive.mjs` now creates empty base classes/combo classes,
+adds declarations **only** to `small` (<=767px) and `tiny` (<=478px),
+and appends them to original class chains. No main, medium, large, xl,
+xxl, or base pseudo-state declarations are written.
 
-## Verification
+Phone grids stack, text has readable sizing and line-height, photos use the
+available width, and fields retain comfortable touch targets. Original form
+IDs, settings, required fields, success/error messages, assets, inline emphasis,
+and all text remain unchanged. Phone-only transparent section backgrounds
+reveal the existing full-height Main Wrapper gradient. Desktop gradients remain
+exactly as originally designed.
 
-- Final Webflow tree/style exports passed `scripts/verify-coming-soon-draft.mjs`:
-  all copy preserved (normalizing colon whitespace), 14 image/form/component
-  nodes retained with unchanged settings/attributes, 38 verified class
-  attachments, 24 verified native styles, and 5 verified heading levels.
-- Actual Chrome/Webflow Designer canvas checks covered widths 320, 393, 667,
-  991, 1395, 1440, and 1920px. None had horizontal overflow or content beyond
-  the page bounds. At 320px all three photos are 280px wide, not thumbnails;
-  at 393px they are approximately 353px wide.
-- The 320px canvas also passed Webflow's 32px root text-zoom preview (200%):
-  no horizontal overflow; headings and form text enlarged without clipping.
-  Normal text sizing was restored afterward.
-- All four visible images loaded in the actual canvas. The preexisting CTA
-  component is hidden and remains unchanged; its hidden placeholder image
-  is not counted as a visible-image failure.
-- Existing Contact Form identity, Name/Email input IDs, required flags,
-  input types, action/method/redirect, and success/error messages are retained.
-  No test submission was sent, and email delivery was not certified.
-- `npm run build` passes, with the existing unused `Alert` import warning.
+## Read-only regression checks
 
-## Files and replay precautions
-
-`coming-soon-responsive.mjs` exports the native CSS/actions manifest.
-Importing it performs no writes and has no publication operation. To verify
-fresh headless reads:
+Run:
 
 ```text
-node scripts/verify-coming-soon-draft.mjs before-tree.json after-tree.json after-styles.json
+node scripts/verify-coming-soon-draft.mjs original-tree.json corrected-tree.json corrected-styles.json original-styles.json original-inherited-styles.json
 ```
 
-The arguments are full MCP response exports for `get_all_elements` and
-`query_styles` (including main/medium/small/tiny and focus/focus-visible).
-Include `Main Wrapper` in the styles query as well: the verifier checks that
-the original gradient and its enclosing page structure are retained.
-Keep the original before export locally for comparison/rollback. Existing
-classes were not deleted, so reverting the affected elements' class lists
-and heading levels from the before export restores their prior presentation.
+The verifier checks exact text and inline structure, original node/settings/
+attribute preservation, original class chains plus mobile modifiers, original
+CSS equality, empty desktop/tablet modifiers, and saved phone declarations.
+Final style exports must include original styles by ID and all `CS Mobile`
+classes, with all seven breakpoints.
 
-If replaying writes, do not blindly create duplicate classes. Reuse/update
-existing `CS ...` styles and batch element actions conservatively. Webflow
-can return a successful outer MCP envelope while individual actions fail
-with `RATE_LIMITED`; inspect every action's error/result. This happened on
-the initial attachment attempt and was recovered using six-action batches
-with a 30-second pause after each successful batch. Final reads, not the
-outer success flag, established completion. Refresh the Designer after
-headless edits before reviewing the canvas.
+`coming-soon-original-assignments.json` stores original affected class chains
+and heading levels; `restoreActions()` restores them. It does not reconstruct
+the page or replace unaffected elements. Importing the manifest is read-only.
+Before replaying writes, query existing classes; never blindly duplicate them.
+Inspect individual MCP action errors even when the envelope succeeds. Use
+small throttled batches and refresh the Designer before visual verification.
+
+## Verified correction — 2026-10-05
+
+- Final native reads passed: 146 original nodes preserved, exact page copy and
+  inline formatting restored, 82 original style entries compared unchanged,
+  and all 17 modifiers restricted to phone declarations.
+- At 1395px desktop and 820px tablet, all 27 measured page elements matched
+  the restored baseline exactly: position, size, typography, image geometry,
+  grid columns, background, and corner radius.
+- 320px, 393px, and 667px phone canvases have no horizontal overflow. At 320px,
+  all three photographs are 280px wide and load successfully. The mobile
+  section backgrounds are transparent over the original full-height gradient.
+- 320px at 200% text zoom also has no horizontal overflow; zoom was reset.
+- Name, Email, and Submit retain 48px touch targets at normal mobile text size.
+  No form submission was sent. Membership/auth code was not changed.
+- Build passes with the pre-existing unused Alert import warning.
 
 ## Launch gate
 
-Publishing is a separate decision: Webflow publication normally ships the
-whole site's unpublished changes. Confirm the intended domain, temporary
-homepage switch, and whole-site draft scope with the owner before launch.
-This layout pass does not certify the source site's legacy User Accounts or
-the beta portal's migration/auth acceptance gates; issue #2/PR #3 remain open.
+Webflow publication normally ships the entire site's unpublished work.
+Explicit owner confirmation remains required before publishing or changing
+the homepage. Merging PR #3 does not publish Webflow draft styles.

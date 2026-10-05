@@ -555,6 +555,9 @@
     });
 
     document.querySelectorAll('[data-blbd-tier]').forEach(function (el) {
+      // The root attribute reports session state for CSS; it is not a
+      // content gate. Hiding it blanks every public page for guests.
+      if (el === document.documentElement) return;
       var needed = el.getAttribute('data-blbd-tier');
       var ok = loggedIn && TIER_RANK[BLBD.tier()] >= (TIER_RANK[needed] || 0);
       show(el, ok);

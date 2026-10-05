@@ -1,0 +1,234 @@
+[
+  {
+    "id": "2a4c8d09-8224-7b6f-096f-bad0a1157f78",
+    "styleNames": [
+      "Section"
+    ]
+  },
+  {
+    "id": "3d888e83-df27-9437-fc5f-e6fd02a95aa9",
+    "styleNames": [
+      "Navbar Component"
+    ]
+  },
+  {
+    "id": "388e4cfe-e275-00af-927d-1279902e031c",
+    "styleNames": [
+      "Navbar Logo"
+    ]
+  },
+  {
+    "id": "c3f0922a-2a0e-5ed7-0af3-36cd47e24bd4",
+    "styleNames": [
+      "Grid 3 Copy"
+    ]
+  },
+  {
+    "id": "c3f0922a-2a0e-5ed7-0af3-36cd47e24bd5",
+    "styleNames": [
+      "Content"
+    ]
+  },
+  {
+    "id": "c3f0922a-2a0e-5ed7-0af3-36cd47e24bd6",
+    "styleNames": [
+      "Margin Bottom",
+      "Margin Small"
+    ]
+  },
+  {
+    "id": "c3f0922a-2a0e-5ed7-0af3-36cd47e24bd7",
+    "styleNames": [
+      "Heading"
+    ],
+    "headingLevel": 2
+  },
+  {
+    "id": "c3f0922a-2a0e-5ed7-0af3-36cd47e24be6",
+    "styleNames": [
+      "Hero Image Wrapper"
+    ]
+  },
+  {
+    "id": "c3f0922a-2a0e-5ed7-0af3-36cd47e24be7",
+    "styleNames": [
+      "Image 2",
+      "Hero Image"
+    ]
+  },
+  {
+    "id": "a654cbdc-3125-4dc3-ca14-30c420afe374",
+    "styleNames": [
+      "Grid 4"
+    ]
+  },
+  {
+    "id": "a654cbdc-3125-4dc3-ca14-30c420afe375",
+    "styleNames": [
+      "Hero Image Wrapper"
+    ]
+  },
+  {
+    "id": "a654cbdc-3125-4dc3-ca14-30c420afe376",
+    "styleNames": [
+      "Image 3"
+    ]
+  },
+  {
+    "id": "a654cbdc-3125-4dc3-ca14-30c420afe377",
+    "styleNames": [
+      "Content"
+    ]
+  },
+  {
+    "id": "a654cbdc-3125-4dc3-ca14-30c420afe378",
+    "styleNames": [
+      "Margin Bottom",
+      "Margin Small"
+    ]
+  },
+  {
+    "id": "a654cbdc-3125-4dc3-ca14-30c420afe379",
+    "styleNames": [],
+    "headingLevel": 1
+  },
+  {
+    "id": "a654cbdc-3125-4dc3-ca14-30c420afe37b",
+    "styleNames": [
+      "Text Size Medium"
+    ]
+  },
+  {
+    "id": "3c6178ea-32cd-9e17-a466-ea7226ac5166",
+    "styleNames": [
+      "Grid 5"
+    ]
+  },
+  {
+    "id": "3c6178ea-32cd-9e17-a466-ea7226ac5167",
+    "styleNames": [
+      "Content"
+    ]
+  },
+  {
+    "id": "3c6178ea-32cd-9e17-a466-ea7226ac5168",
+    "styleNames": [
+      "Content"
+    ]
+  },
+  {
+    "id": "3c6178ea-32cd-9e17-a466-ea7226ac5169",
+    "styleNames": [
+      "Margin Bottom",
+      "Margin Small"
+    ]
+  },
+  {
+    "id": "3c6178ea-32cd-9e17-a466-ea7226ac516a",
+    "styleNames": [],
+    "headingLevel": 1
+  },
+  {
+    "id": "3c6178ea-32cd-9e17-a466-ea7226ac516c",
+    "styleNames": [
+      "Paragraph"
+    ]
+  },
+  {
+    "id": "3c6178ea-32cd-9e17-a466-ea7226ac5176",
+    "styleNames": [
+      "Hero Image Wrapper"
+    ]
+  },
+  {
+    "id": "3c6178ea-32cd-9e17-a466-ea7226ac5177",
+    "styleNames": [
+      "Image 2"
+    ]
+  },
+  {
+    "id": "2a4c8d09-8224-7b6f-096f-bad0a1157f79",
+    "styleNames": [
+      "Global Padding"
+    ]
+  },
+  {
+    "id": "2a4c8d09-8224-7b6f-096f-bad0a1157f7a",
+    "styleNames": [
+      "Small Container"
+    ]
+  },
+  {
+    "id": "2a4c8d09-8224-7b6f-096f-bad0a1157f7b",
+    "styleNames": [
+      "Padding Section Large"
+    ]
+  },
+  {
+    "id": "2a4c8d09-8224-7b6f-096f-bad0a1157f7c",
+    "styleNames": [
+      "Margin Bottom",
+      "margin-large"
+    ]
+  },
+  {
+    "id": "2a4c8d09-8224-7b6f-096f-bad0a1157f83",
+    "styleNames": [],
+    "headingLevel": 1
+  },
+  {
+    "id": "30ec5e92-ceb7-2626-e177-869767e90432",
+    "styleNames": [
+      "Heading 5"
+    ],
+    "headingLevel": 1
+  },
+  {
+    "id": "2a4c8d09-8224-7b6f-096f-bad0a1157f87",
+    "styleNames": [
+      "Max Width Medium",
+      "align-center"
+    ]
+  },
+  {
+    "id": "2a4c8d09-8224-7b6f-096f-bad0a1157f89",
+    "styleNames": [
+      "Form Wrapper"
+    ]
+  },
+  {
+    "id": "2a4c8d09-8224-7b6f-096f-bad0a1157f8a",
+    "styleNames": [
+      "Form field wrapper"
+    ]
+  },
+  {
+    "id": "2a4c8d09-8224-7b6f-096f-bad0a1157f8d",
+    "styleNames": [
+      "Form Input"
+    ]
+  },
+  {
+    "id": "2a4c8d09-8224-7b6f-096f-bad0a1157f8e",
+    "styleNames": [
+      "Form field wrapper"
+    ]
+  },
+  {
+    "id": "2a4c8d09-8224-7b6f-096f-bad0a1157f91",
+    "styleNames": [
+      "Form Input"
+    ]
+  },
+  {
+    "id": "2a4c8d09-8224-7b6f-096f-bad0a1157f96",
+    "styleNames": [
+      "Button",
+      "Is small"
+    ]
+  },
+  {
+    "id": "a3073b8a-c20b-2270-15e6-dba4f6cc1da4",
+    "styleNames": []
+  }
+]

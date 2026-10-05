@@ -21,11 +21,12 @@ const heading = {
   "max-width": "100%", color: "#2d051a",
 };
 export const styles = {
-  "CS Page": { main: { "background-color": "#f4f4f5", color: "#2d051a" } },
+  // Let the existing Main Wrapper gradient paint the entire page, including the footer.
+  "CS Page": { main: { "background-color": "transparent", "background-image": "none", color: "#2d051a" } },
   "CS Header": { main: { display: "flex", "justify-content": "center", "align-items": "center", "background-color": "transparent", ...padding("1.5rem", "1.25rem") } },
   "CS Logo": { main: { display: "block", width: "7rem", "max-width": "100%", height: "auto", ...margin } },
   "CS Hero": {
-    main: { ...grid, ...padding("3rem", "3rem"), "background-image": "radial-gradient(circle farthest-corner at 25% 35%, #b9f6d4 0%, #f4f4f5 65%, #d0ccff 100%)", ...rounded("1.5rem") },
+    main: { ...grid, ...padding("3rem", "3rem"), "background-image": "none", ...rounded("1.5rem") },
     medium: { "grid-template-columns": "minmax(0, 1fr)", ...padding("2.5rem", "2rem") },
     small: { ...padding("2rem", "1.5rem") },
     tiny: { ...padding("1.5rem", "1.25rem"), "grid-row-gap": "1.5rem" },

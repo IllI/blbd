@@ -47,6 +47,12 @@ for (const [id, node] of before) {
   preserved++;
 }
 const savedStyles = parse(stylesPath).flatMap(a => a.result.flatMap(r => r.matches ?? []));
+const gradientOwner = savedStyles.find(s => s.name === "Main Wrapper");
+assert(gradientOwner, "Include Main Wrapper in the styles export to verify the full-page gradient");
+assert.match(gradientOwner.properties.base.properties["background-image"], /^radial-gradient\(/, "Original page-wide gradient missing");
+assert.deepEqual(after.get("2a4c8d09-8224-7b6f-096f-bad0a1157f26")?.styleNames, ["Main Wrapper"], "Gradient owner was replaced");
+assert.equal(after.get("2a4c8d09-8224-7b6f-096f-bad0a1157f26")?.children[0]?.id.element,
+  "2a4c8d09-8224-7b6f-096f-bad0a1157f78", "Page sections no longer sit inside the gradient owner");
 for (const [name, variants] of Object.entries(styles)) {
   const saved = savedStyles.find(s => s.name === name);
   assert(saved, `Missing native style: ${name}`);
@@ -66,4 +72,5 @@ console.log(JSON.stringify({
   verifiedClassAttachments: Object.keys(assignments).length,
   verifiedNativeStyles: Object.keys(styles).length,
   verifiedHeadingLevels: Object.keys(headingLevels).length,
+  fullPageGradientOwnerRetained: true,
 }));

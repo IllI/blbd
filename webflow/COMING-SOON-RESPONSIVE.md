@@ -18,11 +18,17 @@ and long words cannot force horizontal overflow. Photography uses full-width
 responsive sizing and rounded corners; the hero has an intentional desktop
 portrait/mobile landscape crop. The original sunset image keeps its ratio.
 
-The logo/header, green/lavender hero treatment, section spacing, reading
+The logo/header, section spacing, reading
 line-height, closing copy, and centered update form were polished. Inputs
 use 16px text and at least 48px height at normal text size, and keyboard focus
 indicators are explicit. One primary H1 remains, followed by section headings.
 Only an absent space after `Dying:` was corrected in the existing copy.
+
+Follow-up: restored the original full-height green/white/lavender gradient.
+`CS Page` now has a transparent background and `CS Hero` has no separate
+gradient. The existing `Main Wrapper` gradient remains unchanged and shows
+continuously behind the header, hero, story, mission, update form, and footer.
+Responsive sizing and all content/form settings are unchanged.
 
 ## Verification
 
@@ -57,6 +63,8 @@ node scripts/verify-coming-soon-draft.mjs before-tree.json after-tree.json after
 
 The arguments are full MCP response exports for `get_all_elements` and
 `query_styles` (including main/medium/small/tiny and focus/focus-visible).
+Include `Main Wrapper` in the styles query as well: the verifier checks that
+the original gradient and its enclosing page structure are retained.
 Keep the original before export locally for comparison/rollback. Existing
 classes were not deleted, so reverting the affected elements' class lists
 and heading levels from the before export restores their prior presentation.

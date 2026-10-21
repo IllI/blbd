@@ -57,13 +57,14 @@ Production rollout requires a separately reviewed environment-policy change.
   invitations, magic links, reauthentication and secure email-change token mapping
   are covered by local tests. No tokens, addresses, or provider keys are logged.
   Confirmation remains required; never mark real admin emails verified to bypass it.
-- Update campaigns remain **OFF** independently of auth mail. Enabling updates
-  additionally requires the organization's postal address and an explicit beta
-  send-switch change. No production credentials or Google Workspace MX changes
-  are needed. The hook does not send campaigns or grant admin access by itself.
-  The owner deferred the physical postal address; track completion in
-  [issue #6](https://github.com/IllI/blbd/issues/6). Do not enable group sends
-  until that decision is made. `contact@blbd.life` is the reply-to, not a postal address.
+- Beta update sending was activated after the owner supplied the physical
+  mailing address on 2026-10-21. The address is stored in the branch-specific
+  `BLBD_MAIL_POSTAL_ADDRESS` environment variable, and
+  `BLBD_ADMIN_MAIL_ENABLED=true` applies ONLY to Preview / feat/admin-portal.
+  No production configuration or Google Workspace MX changes were made.
+  [Issue #6](https://github.com/IllI/blbd/issues/6) tracks that setup decision.
+  `contact@blbd.life` remains the reply-to, not the postal address.
+  The auth hook does not send campaigns or grant admin access by itself.
 
 ### Draft-to-send workflow
 
@@ -75,8 +76,8 @@ first on narrow screens). The exact mailing-address blocker is displayed next
 to the test result with a link to issue #6, not a direction to scroll elsewhere.
 There is no inactive audience-send button when sending is unavailable. Technical
 configuration and delivery counts are tucked into optional details. Inbox tests are
-allowed for the verified signed-in admin even while group sending is paused
-and the postal address is missing. Audience sends still require the postal
+allowed for the verified signed-in admin even if group sending is paused
+or the postal address is missing. Audience sends still require the postal
 address, explicit beta activation, successful test, approval checkbox, and
 the server-side reviewed-count/lease/suppression checks. There is no automatic
 send after saving/testing. “Copy to new draft” preserves the immutable original
@@ -90,6 +91,15 @@ false. Keys are obtained from the **beta** project and passed through stdin,
 never logged or committed. `scripts/verify-beta-environment.mjs` runs remote
 beta integration checks with a temporary fictional QA account and removes its
 identity/draft/preferences afterwards; it sends no email.
+
+The default verification run sends no mail, including when beta sending is
+enabled: it checks that an untested draft is rejected by the server. Explicit
+`node scripts/verify-beta-environment.mjs --mail-sink` sends one own-address
+preview to Resend's test sink. Explicit `--group-send` additionally creates a
+two-contact sink-only group, independently checks the stored recipient snapshot,
+sends the group, verifies both provider acceptances, and checks that replaying
+the completed campaign does not resend it. No existing groups, real mailboxes,
+or live subscribers are used; all exact synthetic fixtures are removed afterwards.
 
 Provisioning verification passed **13 live beta integration checks**: anonymous
 and ordinary-member denial, verified-admin access and page rendering,

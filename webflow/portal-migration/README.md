@@ -100,6 +100,23 @@ member login to unsubscribe.
   placeholder values. Registration must pin an immutable beta asset deployment,
   substitute only the beta PUBLIC anon key, and apply to explicit portal/auth
   pages. Never install globally or on production. No privileged keys belong here.
+- Registered `blbdnativebetaportal` version `0.1.0` using the beta public anon
+  key and immutable asset origin
+  `https://blbd-ptl69i6pp-illi1s-projects.vercel.app` (commit `39d4582`). Verified
+  page-scoped footer bindings on the four new drafts only. No global or existing
+  auth-page script was changed. Runtime registration alone does not publish pages.
+- A new page's registered-code GET/add returned 404 because the code block did
+  not exist yet. The documented `set_page_scripts` upsert initialized that block;
+  readback then succeeded. Do not infer a paid-plan requirement from this 404.
+  This initialization is safe only after proving the page has no existing block;
+  otherwise the bulk setter can remove scripts. Prefer single-script add/update
+  for already initialized pages. See Webflow's official custom-code guide:
+  https://developers.webflow.com/data/docs/working-with-custom-code
+- Live beta verification after deployment: **15** cookie checks, **19** Webflow
+  bearer checks, and **26** explicit sink-only group-send checks passed. The
+  last run sent one preview and two group messages only to independently checked
+  generated `@resend.dev` test sinks. Fixtures were removed. No real audience was
+  emailed, and neither production DB nor production Webflow was mutated.
 - The dashboard snapshot attempt failed with an empty Designer error, so visual
   responsive QA is still required. Do not claim a successful screenshot check.
 
@@ -136,11 +153,16 @@ surface; draft construction does not mean a page has been connected or published
   test/approval gates, and pause/resume. No network or mail.
 - `npm run test:admin`: database, server authorization, signed auth email,
   provider errors, newsletter workflow, exact-origin CORS and preflight tests.
-- `npm run test:beta -- --webflow`: isolated live beta bearer transport checks;
+- `node scripts/verify-beta-environment.mjs --webflow`: isolated live beta bearer transport checks;
   no email is sent. Default (without `--webflow`) also verifies cookie regression.
-- `npm run test:beta -- --webflow --group-send`: explicit sink-only dispatch;
+- `node scripts/verify-beta-environment.mjs --webflow --group-send`: explicit sink-only dispatch;
   independently checks the frozen snapshot contains ONLY this run's two exact
   Resend test addresses before sending. Never use a real audience for QA.
 - `node scripts/audit-webflow-native.mjs <saved-MCP-tree.json>`: read-only
   native node/binding audit. Designer snapshots and post-publish browser checks
   are additional required evidence, not replaced by local blueprint tests.
+
+Use the direct Node command for flags in PowerShell: the installed npm wrapper
+was observed silently dropping `--webflow` after `npm run ... --`. A genuine
+bearer run prints the four additional CORS/preflight/forged-token checks; do not
+mistake a 15-check cookie-only run for Webflow verification.

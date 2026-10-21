@@ -238,7 +238,7 @@ npm run build
 # Optional live checks, beta only; requires authenticated Supabase CLI and
 # the isolated branch Preview environment. The default sends no email:
 npm run test:beta
-npm run test:beta -- --webflow
+node scripts/verify-beta-environment.mjs --webflow
 ```
 
 Auth-mail tests additionally exercise valid/forged/stale signatures, strict

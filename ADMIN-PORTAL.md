@@ -67,10 +67,14 @@ Production rollout requires a separately reviewed environment-policy change.
 
 ### Draft-to-send workflow
 
-Saving a draft scrolls directly to its review card. The audience is shown by
-name rather than raw JSON, followed by **Review → Test in your inbox → Approve
-& send to audience**. Setup requirements are listed explicitly; disabled
-buttons no longer depend on an unexplained global switch. Inbox tests are
+The workspace separates **Write update**, **Saved emails**, and **Contacts &
+groups**. Saving selects one draft for review, instead of repeating the full
+workflow for every saved campaign down a long page. The audience is shown by
+name, with the email preview and a focused send panel side by side (send panel
+first on narrow screens). The exact mailing-address blocker is displayed next
+to the test result with a link to issue #6, not a direction to scroll elsewhere.
+There is no inactive audience-send button when sending is unavailable. Technical
+configuration and delivery counts are tucked into optional details. Inbox tests are
 allowed for the verified signed-in admin even while group sending is paused
 and the postal address is missing. Audience sends still require the postal
 address, explicit beta activation, successful test, approval checkbox, and

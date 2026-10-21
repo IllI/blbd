@@ -3,19 +3,18 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Field';
 import { Alert } from '@/components/ui/Alert';
-import type { Audience, MailCampaign, MailContact, MailGroup } from '@/lib/admin/types';
-type Campaign = MailCampaign & { accepted: number; pending: number; skipped: number };
-type MailState = { contacts: MailContact[]; groups: MailGroup[]; campaigns: Campaign[]; mail: {
-  canTest: boolean; canSend: boolean; testBlockers: string[]; sendBlockers: string[];
-} };
+import { CampaignReview, type ReviewedCampaign as Campaign } from './CampaignReview';
+import type { Audience, MailContact, MailGroup, MailReadiness } from '@/lib/admin/types';
+type MailState = { contacts: MailContact[]; groups: MailGroup[]; campaigns: Campaign[]; mail: MailReadiness };
 function audienceLabel(a: Audience, groups: MailGroup[]) {
   if (a.kind === 'group') return `Group: ${groups.find(g => g.id === a.groupId)?.name ?? 'saved group'}`;
   if (a.kind === 'individuals') return `Selected individuals (${a.emails.length})`;
-  return { all: 'Members + subscribers', members: 'Verified members', subscribers: 'Confirmed subscribers' }[a.kind];
+  return { all: 'Everyone in beta (members + subscribers)', members: 'Verified beta members', subscribers: 'Confirmed beta subscribers' }[a.kind];
 }
 
 export function NewsletterComposer() {
   const [data, setData] = useState<MailState | null>(null);
+  const [view, setView] = useState<'compose' | 'drafts' | 'contacts'>('drafts');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [kind, setKind] = useState<Audience['kind']>('subscribers');
@@ -42,10 +41,7 @@ export function NewsletterComposer() {
   // One initial fetch; later loads use the explicit Search/pagination actions.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { void load('', 0).catch(e => setError(e.message)); }, []);
-  useEffect(() => {
-    if (prepared) document.getElementById(`campaign-${prepared}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [prepared, data?.campaigns.length]);
-  function changed() { setPrepared(null); setNotice(''); }
+  function changed() { setNotice(''); }
   function audience(): Audience {
     if (kind === 'individuals') return { kind, emails: selected };
     if (kind === 'group') return { kind, groupId };
@@ -66,8 +62,8 @@ export function NewsletterComposer() {
     const preview = await post({ action: 'preview', audience: audience() });
     if (!preview.count) throw new Error('No eligible recipients. Pending subscriptions and opted-out contacts are excluded.');
     const { id } = await post({ action: 'prepare', subject, body, audience: audience() });
-    setPrepared(id); await load();
-    setNotice('Draft saved. Review its frozen audience count below, then send yourself a test.');
+    setPrepared(id); setApproved(null); await load(); setView('drafts');
+    setNotice('Draft saved. Review the email and use the test/send panel beside it.');
   }
   async function send(c: Campaign) {
     if (approved !== c.id || !data?.mail.canSend || !c.tested_at) return;
@@ -82,58 +78,57 @@ export function NewsletterComposer() {
       if (mounted.current) setNotice(complete ? 'Campaign complete. “Accepted” means the provider accepted the message, not confirmed inbox delivery.' : 'Paused after the current batch. Resume this same campaign to continue.');
     } finally { if (mounted.current) { setSending(false); setApproved(null); } }
   }
-  return <div className="stack-lg">
-    {error && <Alert tone="error">{error}</Alert>}{notice && <Alert tone="success">{notice}</Alert>}
-    <section className="card stack" aria-label="Email sending setup">
-      <h2>Draft → Review → Test → Send</h2>
-      <p>Save a draft for your chosen audience, review it, send a test to yourself, then approve the group send. Sending emails does not publish a Webflow page or social post.</p>
-      {data && <><p role="status">Inbox tests: {data.mail.canTest ? 'ready' : 'setup required'} · Group sends: {data.mail.canSend ? 'ready' : 'paused'}</p>
-        {!data.mail.canSend && <Alert tone="info"><strong>Why group sending is paused</strong><ul>{data.mail.sendBlockers.map(reason => <li key={reason}>{reason}</li>)}</ul>{data.mail.canTest && <p>You can still save drafts and send tests to your own signed-in inbox.</p>}</Alert>}
-      </>}
-    </section>
-    <section className="card stack"><h2>1. Write & choose an audience</h2>
+  const active = data?.campaigns.find(c => c.id === prepared) ?? data?.campaigns[0];
+  function openDraft(c: Campaign) { setPrepared(c.id); setApproved(null); setError(''); setNotice(''); }
+  function copyDraft(c: Campaign) {
+    if ((subject.trim() || body.trim()) && !window.confirm('Replace the unsaved text in Write update with a copy of this draft? The saved original will not change.')) return;
+    setSubject(c.subject); setBody(c.body); setKind(c.audience.kind);
+    setSelected(c.audience.kind === 'individuals' ? c.audience.emails : []);
+    setGroupId(c.audience.kind === 'group' ? c.audience.groupId : '');
+    setApproved(null); setView('compose'); setNotice('Working on a new copy. Save and test it before sending; the original is unchanged.');
+  }
+  return <div className="stack admin-mail-workspace">
+    <nav className="admin-mail-nav" aria-label="Email workspace">
+      <button type="button" aria-pressed={view === 'compose'} disabled={busy} onClick={() => setView('compose')}>Write update</button>
+      <button type="button" aria-pressed={view === 'drafts'} disabled={busy} onClick={() => setView('drafts')}>Saved emails{data ? ` (${data.campaigns.length})` : ''}</button>
+      <button type="button" aria-pressed={view === 'contacts'} disabled={busy} onClick={() => setView('contacts')}>Contacts & groups</button>
+    </nav>
+    {error && <Alert tone="error">{error} <button className="admin-text-action" type="button" disabled={busy} onClick={() => run(() => load())}>Refresh data</button></Alert>}
+    {notice && <Alert tone="success">{notice}</Alert>}
+    {!data && !error && <p role="status">Loading email workspace…</p>}
+    {view === 'compose' && <section className="card stack"><h2>Write an email update</h2>
       <Input label="Subject" value={subject} maxLength={200} disabled={busy} onChange={e => { setSubject(e.target.value); changed(); }} />
       <Textarea label="Message" hint="Plain text; blank lines become paragraphs. Unsubscribe and sender details are added automatically." value={body} rows={10} maxLength={50000} disabled={busy} onChange={e => { setBody(e.target.value); changed(); }} />
       <label className="field">Audience<select className="input" value={kind} disabled={busy} onChange={e => { setKind(e.target.value as Audience['kind']); changed(); }}>
-        <option value="subscribers">Confirmed subscribers</option><option value="members">All verified member accounts (including free members)</option><option value="all">Members + subscribers (deduplicated)</option><option value="individuals">Selected individuals</option><option value="group">Saved group</option>
+        <option value="subscribers">Confirmed beta subscribers</option><option value="members">Verified beta members</option><option value="all">Everyone in beta (members + subscribers)</option><option value="individuals">Choose individuals</option><option value="group">Saved group</option>
       </select></label>
       {kind === 'group' && <label className="field">Group<select className="input" value={groupId} disabled={busy} onChange={e => { setGroupId(e.target.value); changed(); }}><option value="">Choose a group</option>{data?.groups.map(g => <option value={g.id} key={g.id}>{g.name} ({g.emails.length})</option>)}</select></label>}
-      <p className="small muted">Opt-outs apply to every audience. Members are verified portal accounts; subscribers must have confirmed their subscription. Webflow-only form records are not automatically imported into this database.</p>
-      {kind === 'individuals' && <p>{selected.length} selected — use the contact picker below.</p>}
+      <p className="small muted">This is the beta contact list, not the live website’s mailing list. Unconfirmed and opted-out contacts will not receive updates.</p>
+      {kind === 'individuals' && <Button variant="secondary" disabled={busy} onClick={() => setView('contacts')}>Choose recipients ({selected.length} selected)</Button>}
       <Button disabled={busy || !data || !subject.trim() || !body.trim()} onClick={() => run(prepare)}>Save draft & continue to review</Button>
-      {prepared && <a href={`#campaign-${prepared}`}>Continue to your saved draft →</a>}
-    </section>
-    <details className="card stack" open={kind === 'individuals'}><summary>Manage contacts & saved groups</summary>
+      {data?.mail.needsPostalAddress && <p className="small muted">You can save and test this email now. Sending to its audience is paused until BLBD’s physical mailing address is supplied.</p>}
+    </section>}
+    {view === 'contacts' && <section className="card stack"><h2>Contacts & groups</h2>
+      <p>Select contacts to email directly or save them as a reusable group.</p>
       <form className="row wrap" onSubmit={e => { e.preventDefault(); setOffset(0); void run(() => load(search, 0)); }}><Input label="Find contacts by email" value={search} onChange={e => setSearch(e.target.value)} /><Button type="submit" disabled={busy}>Search</Button></form>
       <div className="admin-contact-list">{data?.contacts.map(c => <label className="checkbox" key={c.email}><input type="checkbox" checked={selected.includes(c.email)} disabled={busy || c.opted_out} onChange={e => { setSelected(s => e.target.checked ? [...s, c.email] : s.filter(v => v !== c.email)); changed(); }} /><span className="admin-account-email">{c.email}<small className="muted"> {c.member ? 'Member ' : ''}{c.subscriber ? 'Subscriber ' : ''}{c.opted_out ? '(opted out)' : ''}</small></span></label>)}</div>
-      <div className="row wrap"><Button variant="secondary" disabled={busy || offset === 0} onClick={() => run(async () => { await load(search, offset - 100); setOffset(offset - 100); })}>Previous contacts</Button><Button variant="secondary" disabled={busy || (data?.contacts.length ?? 0) < 100} onClick={() => run(async () => { await load(search, offset + 100); setOffset(offset + 100); })}>Next contacts</Button><Button variant="ghost" disabled={busy || !selected.length} onClick={() => { setSelected([]); changed(); }}>Clear selection ({selected.length})</Button></div>
+      {data && !data.contacts.length && <p>No matching contacts. Recipients must first verify a beta account or confirm a subscription.</p>}
+      <div className="row wrap">{offset > 0 && <Button variant="secondary" disabled={busy} onClick={() => run(async () => { await load(search, offset - 100); setOffset(offset - 100); })}>Previous contacts</Button>}{(data?.contacts.length ?? 0) === 100 && <Button variant="secondary" disabled={busy} onClick={() => run(async () => { await load(search, offset + 100); setOffset(offset + 100); })}>Next contacts</Button>}{selected.length > 0 && <Button variant="ghost" disabled={busy} onClick={() => { setSelected([]); changed(); }}>Clear selection ({selected.length})</Button>}</div>
+      <Button disabled={busy || !selected.length} onClick={() => { setKind('individuals'); setView('compose'); }}>Use {selected.length} selected contacts in an update</Button>
       <Input label="New group name" value={groupName} maxLength={100} disabled={busy} onChange={e => setGroupName(e.target.value)} />
-      <Button variant="secondary" disabled={busy || !selected.length || !groupName.trim()} onClick={() => run(async () => { await post({ action: 'group', name: groupName, emails: selected }); setGroupName(''); await load(); setNotice('Group saved. Choose Saved group when composing.'); })}>Save selected contacts as a group</Button>
-    </details>
-    <section className="stack"><h2>Drafts & recent campaigns</h2>
-      {sending && <Button variant="danger" onClick={() => { stop.current = true; }}>Pause after current batch</Button>}
-      {data?.campaigns.map((c, index) => <article className="card stack admin-campaign" id={`campaign-${c.id}`} key={c.id}>
-        <h3 className="admin-account-email">{c.subject}</h3>
-        <p><strong>{audienceLabel(c.audience, data.groups)}</strong> · {c.recipient_count} in frozen audience</p>
-        <p className="small muted">{c.accepted} accepted · {c.skipped} skipped · {c.pending} pending · {c.status === 'complete' ? 'Complete' : c.status === 'sending' ? 'Started — resume this campaign, do not create a duplicate' : c.tested_at ? 'Tested draft' : 'Draft — awaiting test'}</p>
-        <details open={prepared === c.id || (!prepared && index === 0)}><summary>2. Review message & audience</summary>
-          {c.audience.kind === 'individuals' && <p className="admin-account-email">{c.audience.emails.join(', ')}</p>}
-          <p className="small muted">Recipients were frozen when saved. Opt-outs are checked again before sending. To change the message or audience, use “Copy to new draft” and review/test the new draft.</p>
-          <pre className="admin-message-preview">{c.body}</pre>
-          <Button variant="ghost" disabled={busy} onClick={() => { setSubject(c.subject); setBody(c.body); setKind(c.audience.kind); setSelected(c.audience.kind === 'individuals' ? c.audience.emails : []); setGroupId(c.audience.kind === 'group' ? c.audience.groupId : ''); changed(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Copy to new draft</Button>
-        </details>
-        {c.status !== 'complete' && <>
-          <h4>3. Test in your inbox</h4>
-          <p className="small muted">{c.tested_at ? `Test accepted ${new Date(c.tested_at).toLocaleString()}. Check the email before approving a send.` : 'Send a test to your own signed-in email address. No group recipients receive this test.'}</p>
-          {!data.mail.canTest && <p role="status">{data.mail.testBlockers.join(' ')}</p>}
-          <Button variant="secondary" disabled={busy || !data.mail.canTest} onClick={() => run(async () => { await post({ action: 'test', id: c.id }); setPrepared(c.id); setApproved(null); await load(); setNotice('Test accepted for your own inbox. Check the email, then approve the audience send below.'); })}>{c.tested_at ? 'Send another test to me' : 'Send test to my inbox'}</Button>
-          <h4>4. Approve & send to audience</h4>
-          {!data.mail.canSend ? <p role="status">Group sending is paused. Resolve the setup requirements at the top of this page; your draft is saved.</p> : !c.tested_at ? <p role="status">Send a successful test first to unlock approval.</p> : <label className="checkbox"><input type="checkbox" checked={approved === c.id} disabled={busy} onChange={e => setApproved(e.target.checked ? c.id : null)} /><span>I reviewed the test and approve sending “{c.subject}” to up to {c.recipient_count} recipients. Sent emails cannot be recalled.</span></label>}
-          <Button disabled={busy || !data.mail.canSend || !c.tested_at || approved !== c.id} onClick={() => run(() => send(c))}>{c.status === 'sending' ? 'Resume sending to audience' : `Send update to ${c.recipient_count} recipients`}</Button>
-        </>}
-        {c.status === 'complete' && <p role="status">Campaign complete. Accepted means provider acceptance, not confirmed inbox delivery.</p>}
-      </article>)}
-      {data && !data.campaigns.length && <p>No drafts yet.</p>}
-    </section>
+      <Button variant="secondary" disabled={busy || !selected.length || !groupName.trim()} onClick={() => run(async () => { const saved = await post({ action: 'group', name: groupName, emails: selected }); setGroupId(saved.group.id); setKind('group'); setGroupName(''); await load(); setView('compose'); setNotice('Group saved and selected for your update.'); })}>Save group & write an update</Button>
+      {!!data?.groups.length && <div className="stack"><h3>Saved groups</h3>{data.groups.map(g => <Button variant="secondary" disabled={busy} key={g.id} onClick={() => { setGroupId(g.id); setKind('group'); setView('compose'); }}>{g.name} · {g.emails.length} contacts → Write update</Button>)}</div>}
+    </section>}
+    {view === 'drafts' && data && <>
+      {!data.campaigns.length ? <section className="card stack"><h2>No saved emails yet</h2><p>Write an update, choose its recipients, then save it to review and test.</p><Button onClick={() => setView('compose')}>Write your first update</Button></section> : <>
+        <div className="admin-draft-picker" aria-label="Choose a saved email">{data.campaigns.map(c => <button type="button" key={c.id} disabled={busy} aria-pressed={active?.id === c.id} onClick={() => openDraft(c)}>
+          <strong>{c.subject}</strong><span>{c.status === 'complete' ? 'Sent' : c.status === 'sending' ? 'Send started' : c.tested_at ? 'Test sent' : 'Draft'} · {new Date(c.created_at).toLocaleString()}</span>
+        </button>)}</div>
+        {active && <CampaignReview campaign={active} audienceName={audienceLabel(active.audience, data.groups)} mail={data.mail} busy={busy} sending={sending} approved={approved === active.id}
+          onApprove={value => setApproved(value ? active.id : null)} onCopy={() => copyDraft(active)} onPause={() => { stop.current = true; }}
+          onTest={() => run(async () => { await post({ action: 'test', id: active.id }); setApproved(null); await load(); setNotice('Test sent to your signed-in inbox. No audience emails were sent.'); })}
+          onSend={() => run(() => send(active))} />}
+      </>}
+    </>}
   </div>;
 }

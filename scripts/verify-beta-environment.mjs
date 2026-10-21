@@ -53,8 +53,12 @@ try {
   check(csrf.response.status === 403, 'Cross-origin admin mutation rejected');
   const portal = await request('/admin');
   check(portal.response.status === 200, 'Beta admin portal renders with its live beta database');
+  const newsletter = await request('/admin/newsletter');
+  const workspace = await newsletter.response.text();
+  check(newsletter.response.status === 200 && workspace.includes('aria-label="Email workspace"') && workspace.includes('Write update') && workspace.includes('Saved emails'), 'Newsletter exposes separate interactive writing, saved-email, and contacts sections');
   const state = await request('/api/admin/mail');
   check(state.response.status === 200 && state.payload.mail.canSend === false, 'Real email sending remains disabled');
+  check(state.payload.mail.needsPostalAddress === true, 'Sending status identifies the deferred physical-address requirement');
   const reviewed = await request('/api/admin/mail', { action: 'preview', audience: { kind: 'individuals', emails: [email] } });
   check(reviewed.response.status === 200 && reviewed.payload.count === 1, 'Individual audience resolves against beta contacts');
   let audience = { kind: 'individuals', emails: [email] };

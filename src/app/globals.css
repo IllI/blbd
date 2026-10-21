@@ -1188,7 +1188,26 @@ a:hover { color: var(--color-blue); }
 .admin-account-email { overflow-wrap: anywhere; }
 .admin-contact-list { max-height: 25rem; overflow-y: auto; display: grid; gap: 0.75rem; }
 .admin-message-preview { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; margin-top: 1rem; }
-.admin-campaign { scroll-margin-top: 1.5rem; }
+.admin-mail-workspace { min-width: 0; }
+.admin-mail-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.admin-mail-nav button { border: 1px solid var(--color-border); background: white; border-radius: 0.5rem; padding: 0.65rem 1rem; font: inherit; cursor: pointer; }
+.admin-mail-nav button[aria-pressed="true"] { background: #28264d; border-color: #28264d; color: white; }
+.admin-draft-picker { display: flex; gap: 0.65rem; overflow-x: auto; padding-bottom: 0.4rem; }
+.admin-draft-picker button { flex: 0 0 16rem; min-width: 0; max-width: 85vw; text-align: left; font: inherit; background: white; border: 1px solid var(--color-border); border-radius: 0.65rem; padding: 0.85rem; cursor: pointer; }
+.admin-draft-picker button strong { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.admin-draft-picker button span { display: block; margin-top: 0.3rem; font-size: 0.8rem; }
+.admin-draft-picker button[aria-pressed="true"] { border-color: #48468c; box-shadow: inset 0 0 0 1px #48468c; background: #f2f1ff; }
+.admin-review { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(18rem, 1fr); gap: 1.25rem; align-items: start; }
+.admin-review > * { min-width: 0; }
+.admin-email-body { white-space: pre-wrap; overflow-wrap: anywhere; padding: 1.5rem 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+.admin-send-blocker { background: #fff7e6; border: 1px solid #e5c588; border-radius: 0.65rem; padding: 1rem; }
+.admin-send-blocker a { color: #28264d; text-decoration: underline; font-weight: 600; }
+.admin-send-blocker details { font-size: 0.85rem; }
+.admin-send-blocker ul { padding-left: 1.2rem; overflow-wrap: anywhere; }
+.admin-text-action { font: inherit; color: inherit; text-decoration: underline; background: none; border: 0; cursor: pointer; }
+.admin-mail-workspace button:focus-visible, .admin-mail-workspace a:focus-visible { outline: 3px solid #48468c; outline-offset: 3px; }
+.admin-mail-workspace button:disabled { cursor: not-allowed; }
+@media (max-width: 1200px) { .admin-review { grid-template-columns: minmax(0, 1fr); } .admin-send-panel { grid-row: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
   *,

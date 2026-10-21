@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test:admin": "node scripts/test-admin-schema.mjs && node scripts/test-admin-logic.mjs && node scripts/test-auth-email.mjs",
+    "test:admin": "node scripts/test-admin-schema.mjs && node scripts/test-admin-logic.mjs && node scripts/test-auth-email.mjs && node scripts/test-mail-review.mjs",
     "test:beta": "node scripts/verify-beta-environment.mjs",
     "dev": "next dev",
     "build": "next build",

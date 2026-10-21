@@ -20,7 +20,7 @@ export function mailConfiguration() {
   if (!address) sendBlockers.push('Add BLBD’s physical mailing address (street address or PO box) as BLBD_MAIL_POSTAL_ADDRESS in beta Preview. An email address is not a postal address.');
   if (!enabled) sendBlockers.push('Group sending is switched off: activate BLBD_ADMIN_MAIL_ENABLED in beta Preview after setup.');
   const ready = !testBlockers.length && !!address;
-  return { ready, enabled, canTest: !testBlockers.length, canSend: !sendBlockers.length, testBlockers, sendBlockers };
+  return { ready, enabled, needsPostalAddress: !address, canTest: !testBlockers.length, canSend: !sendBlockers.length, testBlockers, sendBlockers };
 }
 export function requireMail() {
   if (!mailConfiguration().canSend) throw new AdminError('Mail is disabled. Configure the verified sender, API key, HTTPS app URL, postal address, and BLBD_ADMIN_MAIL_ENABLED first.', 503);

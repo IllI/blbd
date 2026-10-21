@@ -4,6 +4,10 @@ export type Audience =
   | { kind: 'group'; groupId: string };
 export type MailContact = { email: string; name: string | null; member: boolean; subscriber: boolean; opted_out: boolean };
 export type MailGroup = { id: string; name: string; emails: string[]; created_by: string | null; created_at: string };
+export type MailReadiness = {
+  canTest: boolean; canSend: boolean; enabled: boolean; needsPostalAddress: boolean;
+  testBlockers: string[]; sendBlockers: string[];
+};
 export type MailCampaign = {
   id: string; created_by: string | null; subject: string; body: string; audience: Audience;
   recipient_count: number; status: 'draft' | 'sending' | 'complete'; lease_id: string | null;

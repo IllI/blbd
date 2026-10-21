@@ -104,7 +104,16 @@ member login to unsubscribe.
   key and immutable asset origin
   `https://blbd-ptl69i6pp-illi1s-projects.vercel.app` (commit `39d4582`). Verified
   page-scoped footer bindings on the four new drafts only. No global or existing
-  auth-page script was changed. Runtime registration alone does not publish pages.
+  auth-page script was changed at that checkpoint. Runtime registration alone
+  does not publish pages.
+- Subsequent social-auth restoration adds native Google/Yahoo groups to existing
+  `/log-in` and `/sign-up` pages using the existing `Button` / `Is small` classes.
+  Separate loader script `blbdbetasocialloader` v`0.1.0` is scoped only to those two
+  pages; it does not replace password forms or change the membership SDK.
+  See `SOCIAL-AUTH.md` and [provider setup issue #8](https://github.com/IllI/blbd/issues/8).
+  Both real providers remain unconfigured; no end-to-end Google/Yahoo success
+  is claimed. Beta publication is awaiting the user's choice about also shipping
+  unrelated pending `/blog` and `/blog-categories-premium` changes.
 - A new page's registered-code GET/add returned 404 because the code block did
   not exist yet. The documented `set_page_scripts` upsert initialized that block;
   readback then succeeded. Do not infer a paid-plan requirement from this 404.

@@ -6,6 +6,7 @@ import { parseHTML } from 'linkedom';
 import React from 'react';
 import * as jsx from 'react/jsx-runtime';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { createHash } from 'node:crypto';
 
 function load(path, imports, globals = {}) {
   const exports = {};
@@ -106,6 +107,15 @@ assert.equal(event.defaultPrevented, true);
 assert.match(consent.document.querySelector('[data-blbd-social-status]').textContent, /privacy policy/);
 const prod = await dom('login', { google: true, yahoo: true }, 'https://blbd.life');
 assert.equal(prod.requests.length, 0, 'No controller behavior on production');
+const bootstrap = readFileSync(new URL('../webflow/portal-migration/social-bootstrap.js', import.meta.url), 'utf8');
+const loaded = [];
+vm.runInNewContext(bootstrap, { location: { origin: 'https://blbd.webflow.io' }, document: {
+  createElement: tag => { assert.equal(tag, 'script'); return {}; }, body: { appendChild: script => loaded.push(script) },
+} });
+assert.equal(loaded.length, 1);
+assert.equal(loaded[0].crossOrigin, 'anonymous');
+assert.equal(loaded[0].integrity, 'sha256-' + createHash('sha256').update(controller.replaceAll('\r\n', '\n')).digest('base64'));
+assert.equal(new URL(loaded[0].src).hostname, 'blbd-2y5wswke8-illi1s-projects.vercel.app');
 
 // Existing beta portal auth pages expose the same providers using their own
 // current Button component, without changing production's optional providers.

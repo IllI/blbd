@@ -91,8 +91,26 @@ and `npm run build`. Verify `/api/auth/providers` returns only readiness boolean
 correct exact-origin CORS, and `no-store`; verify both unconfigured start routes
 give the explicit setup error without creating any account or session.
 
-Register `blbd-social.js` as a hosted script against an immutable beta Preview
-URL with the actual SHA-256 integrity hash and `crossorigin=anonymous`. Apply
-it **only to the two auth pages**, not to the entire site. Read back bindings
+Register `social-bootstrap.js` as an inline script. Its external controller uses
+an immutable beta Preview URL, the actual SHA-256 integrity hash, and anonymous
+CORS. The API accepts only `data-*` custom attributes on applied scripts, so do
+not try to set `crossorigin`/`defer` through its attributes map. Apply the loader
+**only to the two auth pages**, not to the entire site. Read back bindings
 and verify no existing script was removed. Beta publish is the only authorized
 publish; production remains the stable Coming Soon site.
+
+Installed and read back on the two auth pages only: registered script
+`blbdbetasocialloader`, version `0.1.0`, asset
+`https://blbd-2y5wswke8-illi1s-projects.vercel.app/blbd-social.js`, SHA-256
+`Quj+jGjTtGNH7rxzBecMfR4HreW4kietGfT/ENz3+so=`, with anonymous CORS. Global
+freeform code remains empty and the four unpublished portal draft scripts are
+unchanged. Native group IDs: login `e4ea5403-a500-1ae2-8df8-e4a5843c1f03`,
+signup `6c0b5c5e-110d-d69f-7403-dcadec88653f`.
+
+Live beta readiness returned `google=false, yahoo=false`; both start routes
+returned the explicit `social_setup_required` path with no new auth cookies.
+Unsupported providers return 400. Provider credentials and actual account login
+checks remain tracked in [issue #8](https://github.com/IllI/blbd/issues/8).
+Webflow publishing is on hold: whole-site beta publication would also ship
+pending edits to `/blog` and `/blog-categories-premium`, so the user was asked
+to choose whether those unrelated edits may be released together.

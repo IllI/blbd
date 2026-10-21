@@ -140,7 +140,9 @@ remain.
 4. Enable email confirmation in beta Supabase Auth, configure its signed auth
    email hook (or custom SMTP, but not both as active sending paths),
    and allow the beta backend's `/auth/confirm` redirect. The existing password,
-   Google, and Yahoo/Webflow SDK flows are not replaced. Workspace inboxes do
+   Google button hooks are preserved. Yahoo was a preservation requirement,
+   not a previously verified implementation; see `webflow/portal-migration/SOCIAL-AUTH.md`
+   for the new beta Google/Yahoo controls and still-required provider setup. Workspace inboxes do
    **not** automatically create BLBD accounts or share their passwords.
 5. Sign up/sign in at the beta backend using one of these **exact**, verified
    mailbox addresses: `contact@blbd.life`, `admin@blbd.life`, `dan@blbd.life`,

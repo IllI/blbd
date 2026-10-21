@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "test:admin": "node scripts/test-admin-schema.mjs && node scripts/test-admin-logic.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -20,6 +21,7 @@
     "stripe": "^22.4.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.11",
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
     "@types/react": "^19",

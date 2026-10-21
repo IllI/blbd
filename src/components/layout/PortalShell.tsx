@@ -51,6 +51,7 @@ export function PortalShell({
   ];
 
   if (profile?.is_admin) {
+    items.push({ href: '/admin', label: 'Administration', icon: '⚙' });
     items.push({ href: '/admin/newsletter', label: 'Newsletter', icon: '✉' });
   }
 

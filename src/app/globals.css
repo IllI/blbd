@@ -1184,6 +1184,11 @@ a:hover { color: var(--color-blue); }
   line-height: 1;
 }
 
+/* Internal admin tools only; never injected into the public Webflow site. */
+.admin-account-email { overflow-wrap: anywhere; }
+.admin-contact-list { max-height: 25rem; overflow-y: auto; display: grid; gap: 0.75rem; }
+.admin-message-preview { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; margin-top: 1rem; }
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

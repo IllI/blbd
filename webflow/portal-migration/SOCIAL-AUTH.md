@@ -111,6 +111,23 @@ Live beta readiness returned `google=false, yahoo=false`; both start routes
 returned the explicit `social_setup_required` path with no new auth cookies.
 Unsupported providers return 400. Provider credentials and actual account login
 checks remain tracked in [issue #8](https://github.com/IllI/blbd/issues/8).
-Webflow publishing is on hold: whole-site beta publication would also ship
-pending edits to `/blog` and `/blog-categories-premium`, so the user was asked
-to choose whether those unrelated edits may be released together.
+After explicit user approval to release all pending beta changes, Webflow beta
+was published on **2026-10-21 at 21:20:47.657 UTC** (task
+`dd432025-2d2a-42de-88a5-52c22f6b22c5`). The target was the Webflow subdomain
+only, with `customDomains=[]`; production was not changed. This also released
+the approved pending blog/category template edits.
+
+Published `/log-in` and `/sign-up` both return 200 with exactly one native
+social group, both themed provider links, and the registered loader. Existing
+email/password inputs and signup consent inputs remain present. Executing the
+actual published controller against the fetched page DOM verified group
+relocation into the original form, safe disabled-provider behavior, and an
+unmodified password-submit listener. The live loader/controller passed source,
+SHA-256 integrity and anonymous-CORS checks. This is DOM/script verification,
+not browser visual QA or a successful account login.
+
+The four unfinished portal pages remain drafts; `/admin/newsletter` still
+returns 404 on Webflow. The existing beta backend portal remains the working
+newsletter surface. Google/Yahoo readiness still returns false for both;
+provider credentials and real end-to-end account tests remain blocked on
+the configuration described above and tracked in issue #8.

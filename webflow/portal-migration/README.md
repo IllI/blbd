@@ -112,8 +112,13 @@ member login to unsubscribe.
   pages; it does not replace password forms or change the membership SDK.
   See `SOCIAL-AUTH.md` and [provider setup issue #8](https://github.com/IllI/blbd/issues/8).
   Both real providers remain unconfigured; no end-to-end Google/Yahoo success
-  is claimed. Beta publication is awaiting the user's choice about also shipping
-  unrelated pending `/blog` and `/blog-categories-premium` changes.
+  is claimed. After explicit approval to release all pending beta changes,
+  beta was published to `blbd.webflow.io` only at 2026-10-21 21:20:47.657 UTC,
+  including pending blog/category edits. Published auth markup, loader integrity,
+  CORS and controller behavior passed live DOM/script checks; existing password
+  and consent inputs remain present. The four portal drafts remain unpublished
+  (`/admin/newsletter` returns 404). Production was not changed. See
+  `SOCIAL-AUTH.md` for the release evidence and remaining provider setup.
 - A new page's registered-code GET/add returned 404 because the code block did
   not exist yet. The documented `set_page_scripts` upsert initialized that block;
   readback then succeeded. Do not infer a paid-plan requirement from this 404.

@@ -16,13 +16,16 @@ const key = name => keys.find(k => k.name === name)?.api_key;
 for (const name of ['anon', 'service_role']) assert.equal(JSON.parse(Buffer.from(key(name).split('.')[1], 'base64url').toString()).ref, ref);
 const admin = createClient(`https://${ref}.supabase.co`, key('service_role'), { auth: { persistSession: false, autoRefreshToken: false } });
 const password = randomBytes(32).toString('base64url');
-const email = `beta-qa-${randomUUID()}@example.invalid`;
+// Explicit opt-in sends ONE draft preview to Resend's documented test sink,
+// never to a real inbox or audience. Default integration checks send no mail.
+const sinkTest = process.argv.includes('--mail-sink');
+const email = sinkTest ? `delivered+blbd-admin-${randomUUID()}@resend.dev` : `beta-qa-${randomUUID()}@example.invalid`;
 const jar = new Map();
 const client = createServerClient(`https://${ref}.supabase.co`, key('anon'), { cookies: {
   getAll: () => [...jar].map(([name, value]) => ({ name, value })),
   setAll: cookies => cookies.forEach(c => jar.set(c.name, c.value)),
 } });
-let userId, campaignId;
+let userId, campaignId, groupId;
 let checks = 0;
 async function request(path, body, { cookie = true, requestOrigin = origin } = {}) {
   const response = await fetch(origin + path, { method: body ? 'POST' : 'GET', redirect: 'manual', headers: {
@@ -54,11 +57,27 @@ try {
   check(state.response.status === 200 && state.payload.mail.canSend === false, 'Real email sending remains disabled');
   const reviewed = await request('/api/admin/mail', { action: 'preview', audience: { kind: 'individuals', emails: [email] } });
   check(reviewed.response.status === 200 && reviewed.payload.count === 1, 'Individual audience resolves against beta contacts');
-  const prepared = await request('/api/admin/mail', { action: 'prepare', audience: { kind: 'individuals', emails: [email] }, subject: 'Temporary beta verification — do not send', body: 'Synthetic integration test. No real recipient.' });
+  let audience = { kind: 'individuals', emails: [email] };
+  if (sinkTest) {
+    const group = await request('/api/admin/mail', { action: 'group', name: 'Temporary delivery-sink test group', emails: [email] });
+    groupId = group.payload?.group?.id;
+    check(group.response.status === 200 && !!groupId, 'Verified admin can save a group of eligible test contacts');
+    audience = { kind: 'group', groupId };
+  }
+  const prepared = await request('/api/admin/mail', { action: 'prepare', audience, subject: 'Temporary beta verification — do not send', body: 'Synthetic integration test. No real recipient.' });
   campaignId = prepared.payload?.id;
   check(prepared.response.status === 200 && !!campaignId, 'Draft and recipient snapshot persist in beta');
-  const send = await request('/api/admin/mail', { action: 'test', id: campaignId });
-  check(send.response.status === 503, 'Missing email configuration blocks a send without contacting the provider');
+  if (sinkTest) {
+    check(state.payload.mail.canTest === true, 'Own-inbox tests work while group sending is paused');
+    const test = await request('/api/admin/mail', { action: 'test', id: campaignId });
+    check(test.response.status === 200 && test.payload.test, 'Draft preview accepted for signed-in Resend delivery-test sink');
+    const saved = await admin.from('mail_campaigns').select('tested_at,audience').eq('id', campaignId).single();
+    check(!!saved.data?.tested_at && saved.data.audience.kind === 'group', 'Successful group-draft test records readiness without sending to the group');
+  }
+  // Inbox tests may now be enabled independently. Never use the test action
+  // with this fictional address; check the still-paused group-send path instead.
+  const send = await request('/api/admin/mail', { action: 'send', id: campaignId, confirmCount: 1 });
+  check(send.response.status === 503, 'Paused group sending is enforced without contacting the provider');
   const pref = await admin.from('mail_preferences').select('unsubscribe_token').eq('email', email).single();
   if (pref.error) throw pref.error;
   const scanner = await request(`/api/updates/unsubscribe?token=${pref.data.unsubscribe_token}`);
@@ -70,7 +89,7 @@ try {
   const demoted = await admin.from('profiles').update({ is_admin: false }).eq('id', userId);
   if (demoted.error) throw demoted.error;
   check((await request('/api/admin/accounts')).response.status === 403, 'Revocation blocks existing admin session immediately');
-  console.log(`Beta integration checks passed: ${checks}; no email was sent.`);
+  console.log(`Beta integration checks passed: ${checks}; ${sinkTest ? 'one preview sent only to Resend delivery-test sink; no audience mail' : 'no email was sent'}.`);
 } finally {
   // Exact IDs/email created above, isolated beta project only. Never broad deletes.
   if (campaignId) {
@@ -80,6 +99,10 @@ try {
   if (userId) {
     const { error } = await admin.auth.admin.deleteUser(userId);
     if (error) throw new Error('Temporary beta identity cleanup failed');
+  }
+  if (groupId) {
+    const { error } = await admin.from('mail_groups').delete().eq('id', groupId);
+    if (error) throw new Error('Temporary beta group cleanup failed');
   }
   const { error } = await admin.from('mail_preferences').delete().eq('email', email);
   if (error) throw new Error('Temporary beta preference cleanup failed');

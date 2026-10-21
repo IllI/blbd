@@ -63,6 +63,25 @@ assert.equal(recorded, 0);
 rejected = false;
 await mail.testCampaign({ id: 'campaign', subject: 'Test', body: 'Body' }, 'admin@blbd.life');
 assert.equal(recorded, 1);
+// A self-addressed preview is safe while group sending is paused. Postal setup
+// and the bulk switch must still block the actual audience worker.
+const pausedEnv = { RESEND_API_KEY: 're_valid_test_key', NEXT_PUBLIC_APP_URL: 'https://beta.example', BLBD_ADMIN_MAIL_ENABLED: 'false' };
+const pausedMail = load('../src/lib/admin/mail.ts', {
+  'server-only': {}, 'node:crypto': {}, './environment': { betaIsIsolated: () => true }, './auth': { AdminError: MockAdminError },
+  '@/lib/supabase/admin': { createAdminClient: () => ({ from: () => ({ update: () => ({ eq: async () => ({ error: null }) }) }) }) },
+  '@/lib/resend': { fromAddress: () => 'BLBD Beta <contact@blbd.life>', emailShell: x => x, escapeHtml: x => x,
+    getResend: () => ({ emails: { send: async message => {
+      assert.equal(message.to, 'verified-admin@example.com');
+      assert.ok(!message.text.includes('undefined'));
+      return { data: { id: 'test-only' }, error: null };
+    } } }),
+  },
+}, pausedEnv);
+assert.equal(pausedMail.mailConfiguration().canTest, true);
+assert.equal(pausedMail.mailConfiguration().canSend, false);
+assert.equal(pausedMail.mailConfiguration().sendBlockers.length, 2);
+assert.throws(() => pausedMail.requireMail(), /Mail is disabled/);
+await pausedMail.testCampaign({ id: 'draft', subject: 'Test', body: 'Safe test' }, 'verified-admin@example.com');
 const disabledMail = load('../src/lib/admin/mail.ts', {
   'server-only': {}, 'node:crypto': {}, './environment': { betaIsIsolated: () => false }, './auth': { AdminError: MockAdminError },
   '@/lib/supabase/admin': {}, '@/lib/resend': { fromAddress: () => 'BLBD <contact@blbd.life>' },

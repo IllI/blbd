@@ -35,6 +35,16 @@ try {
   await q('INSERT INTO auth.users(id,email,email_confirmed_at) VALUES ($1,$2,now())', [dan, 'dan@blbd.life']);
   await q('INSERT INTO auth.users(id,email,email_confirmed_at) VALUES ($1,$2,now())', [member, 'member@example.com']);
   await db.exec(await readFile(new URL('../supabase/migrations/0002_admin_portal.sql', import.meta.url), 'utf8'));
+  const jonas = randomUUID();
+  await q('INSERT INTO auth.users(id,email) VALUES ($1,$2)', [jonas, 'jonasgoldstein@gmail.com']);
+  const jonasMigration = await readFile(new URL('../supabase/migrations/0003_add_jonas_admin.sql', import.meta.url), 'utf8');
+  await db.exec(jonasMigration);
+  ok(!(await one('SELECT is_admin FROM profiles WHERE id=$1', [jonas])).is_admin, 'Jonas invitation never bypasses mailbox verification');
+  await q('UPDATE auth.users SET email_confirmed_at=now() WHERE id=$1', [jonas]);
+  ok((await one('SELECT is_admin FROM profiles WHERE id=$1', [jonas])).is_admin, 'Verified Jonas Gmail account claims the exact invitation');
+  await q('SELECT admin_set_account($1,$2,$3,$4)', [dan, jonas, 'Jonas', false]);
+  await db.exec(jonasMigration);
+  ok(!(await one('SELECT is_admin FROM profiles WHERE id=$1', [jonas])).is_admin, 'Reapplying Jonas invitation never restores revoked access');
   ok((await one('SELECT is_admin FROM profiles WHERE id=$1', [dan])).is_admin, 'Backfill grants verified initial admin');
   await q('INSERT INTO auth.users(id,email) VALUES ($1,$2)', [kevin, 'kevin@blbd.life']);
   ok(!(await one('SELECT is_admin FROM profiles WHERE id=$1', [kevin])).is_admin, 'Unverified initial address is not admin');

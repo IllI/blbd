@@ -11,8 +11,16 @@ export function mailConfiguration() {
   const base = process.env.NEXT_PUBLIC_APP_URL?.trim();
   const address = process.env.BLBD_MAIL_POSTAL_ADDRESS?.trim();
   const enabled = process.env.BLBD_ADMIN_MAIL_ENABLED === 'true';
-  const ready = !!(apiKey && !/placeholder|\.\.\.|your[_-]/i.test(apiKey) && base?.startsWith('https://') && address && /@blbd\.life>/i.test(fromAddress()));
-  return { ready, enabled, canSend: ready && enabled && betaIsIsolated() };
+  const testBlockers: string[] = [];
+  if (!betaIsIsolated()) testBlockers.push('An isolated beta database is required.');
+  if (!apiKey || /placeholder|\.\.\.|your[_-]/i.test(apiKey)) testBlockers.push('Configure the Resend API key in the beta Preview environment.');
+  if (!base?.startsWith('https://')) testBlockers.push('Configure the HTTPS beta app URL.');
+  if (!/@blbd\.life>/i.test(fromAddress())) testBlockers.push('Configure the verified @blbd.life sender.');
+  const sendBlockers = [...testBlockers];
+  if (!address) sendBlockers.push('Add BLBD’s physical mailing address (street address or PO box) as BLBD_MAIL_POSTAL_ADDRESS in beta Preview. An email address is not a postal address.');
+  if (!enabled) sendBlockers.push('Group sending is switched off: activate BLBD_ADMIN_MAIL_ENABLED in beta Preview after setup.');
+  const ready = !testBlockers.length && !!address;
+  return { ready, enabled, canTest: !testBlockers.length, canSend: !sendBlockers.length, testBlockers, sendBlockers };
 }
 export function requireMail() {
   if (!mailConfiguration().canSend) throw new AdminError('Mail is disabled. Configure the verified sender, API key, HTTPS app URL, postal address, and BLBD_ADMIN_MAIL_ENABLED first.', 503);
@@ -20,14 +28,15 @@ export function requireMail() {
 function appUrl() { return process.env.NEXT_PUBLIC_APP_URL!.trim().replace(/\/$/, ''); }
 function render(campaign: Pick<MailCampaign, 'subject' | 'body'>, token?: string) {
   const url = token ? `${appUrl()}/updates/unsubscribe?token=${token}` : '';
+  const address = process.env.BLBD_MAIL_POSTAL_ADDRESS?.trim() ?? '';
   const content = campaign.body.split(/\n{2,}/).map(p => `<p>${escapeHtml(p).replace(/\n/g, '<br />')}</p>`).join('');
   return {
-    html: emailShell(`${content}<hr /><p style="font-size:12px;">${escapeHtml(process.env.BLBD_MAIL_POSTAL_ADDRESS!)}${url ? `<br /><a href="${escapeHtml(url)}">Unsubscribe from BLBD updates</a>` : '<br />Test message — not sent to your audience.'}</p>`, campaign.subject),
-    text: `${campaign.body}\n\n${process.env.BLBD_MAIL_POSTAL_ADDRESS}${url ? `\nUnsubscribe: ${url}` : '\nTest message — not sent to your audience.'}`,
+    html: emailShell(`${content}<hr /><p style="font-size:12px;">${escapeHtml(address)}${url ? `<br /><a href="${escapeHtml(url)}">Unsubscribe from BLBD updates</a>` : '<br />Test message — not sent to your audience.'}</p>`, campaign.subject),
+    text: `${campaign.body}\n\n${address}${url ? `\nUnsubscribe: ${url}` : '\nTest message — not sent to your audience.'}`,
   };
 }
 export async function testCampaign(campaign: MailCampaign, email: string) {
-  requireMail();
+  if (!mailConfiguration().canTest) throw new AdminError('Test email is unavailable. Check the beta email setup requirements.', 503);
   const { error, data } = await getResend().emails.send({ from: fromAddress(), to: email,
     subject: `[TEST] ${campaign.subject}`, ...render(campaign), replyTo: 'contact@blbd.life' });
   if (error || !data?.id) throw new AdminError('Email provider rejected the test. No audience emails were sent.', 502);

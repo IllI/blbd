@@ -20,7 +20,9 @@ Production rollout requires a separately reviewed environment-policy change.
 
 - Supabase **blbd-beta**: `hfmjvbjyectxiszutwen`, Free plan / Nano, US East.
   Migrations `0001` and `0002` are applied and recorded in
-  `supabase_migrations.schema_migrations`. Production project
+  `supabase_migrations.schema_migrations`. Migration `0003` adds the owner's
+  additional one-time invitation for `jonasgoldstein@gmail.com`; verification
+  is still required and revoked access is not restored by reapplying it. Production project
   `ihghsacsxvibtwoiyjag` was not migrated or otherwise changed.
 - Vercel **Preview / feat/admin-portal** has branch-specific beta URL, anon key,
   service key, environment guard, and beta app/site URLs. Other Preview branches,
@@ -59,6 +61,23 @@ Production rollout requires a separately reviewed environment-policy change.
   additionally requires the organization's postal address and an explicit beta
   send-switch change. No production credentials or Google Workspace MX changes
   are needed. The hook does not send campaigns or grant admin access by itself.
+  The owner deferred the physical postal address; track completion in
+  [issue #6](https://github.com/IllI/blbd/issues/6). Do not enable group sends
+  until that decision is made. `contact@blbd.life` is the reply-to, not a postal address.
+
+### Draft-to-send workflow
+
+Saving a draft scrolls directly to its review card. The audience is shown by
+name rather than raw JSON, followed by **Review → Test in your inbox → Approve
+& send to audience**. Setup requirements are listed explicitly; disabled
+buttons no longer depend on an unexplained global switch. Inbox tests are
+allowed for the verified signed-in admin even while group sending is paused
+and the postal address is missing. Audience sends still require the postal
+address, explicit beta activation, successful test, approval checkbox, and
+the server-side reviewed-count/lease/suppression checks. There is no automatic
+send after saving/testing. “Copy to new draft” preserves the immutable original
+and requires review/testing of the new snapshot. “Send” means email dispatch,
+not publication to Webflow or social media.
 
 `scripts/configure-beta-preview.mjs` can reapply the branch-only environment
 configuration on this Windows workstation using the existing authenticated CLIs.
@@ -111,7 +130,8 @@ remain.
    **not** automatically create BLBD accounts or share their passwords.
 5. Sign up/sign in at the beta backend using one of these **exact**, verified
    mailbox addresses: `contact@blbd.life`, `admin@blbd.life`, `dan@blbd.life`,
-   `kevin@blbd.life`, `m.blake@blbd.life`, `meghan@blbd.life`. Use
+   `kevin@blbd.life`, `m.blake@blbd.life`, `meghan@blbd.life`, or
+   `jonasgoldstein@gmail.com` (migration `0003`). Use
    `/login?next=/admin` or `/signup?next=/admin`. Existing verified accounts get
    the initial grant during migration; new accounts get it on verification.
 6. Open `/admin`. Test non-admin denial, grants/revocation, last-admin protection,

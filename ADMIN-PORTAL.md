@@ -16,6 +16,56 @@ it must use its own Supabase project and keys, not the shared production project
 Do not merge/deploy this feature to production as a shortcut to testing it.
 Production rollout requires a separately reviewed environment-policy change.
 
+## Provisioned beta environment (2026-10-21)
+
+- Supabase **blbd-beta**: `hfmjvbjyectxiszutwen`, Free plan / Nano, US East.
+  Migrations `0001` and `0002` are applied and recorded in
+  `supabase_migrations.schema_migrations`. Production project
+  `ihghsacsxvibtwoiyjag` was not migrated or otherwise changed.
+- Vercel **Preview / feat/admin-portal** has branch-specific beta URL, anon key,
+  service key, environment guard, and beta app/site URLs. Other Preview branches,
+  Development, and Production settings were not overwritten.
+- Beta admin URL:
+  `https://blbd-git-feat-admin-portal-illi1s-projects.vercel.app/admin`.
+- The old `blbd-staging.vercel.app` alias is NOT the isolated beta. It pointed
+  to the same deployment as `app.blbd.life` at audit time and is deliberately
+  unchanged to avoid breaking any existing production consumers.
+- No production users, passwords, newsletter contacts, or profile images were
+  copied. The six requested initial admin invitations exist, but each admin
+  must register/verify a **separate beta account**.
+- Local `supabase/.temp` metadata is no longer tracked in git. It previously
+  carried a production project link into new worktrees. Explicitly link each
+  checkout to its intended project; never infer the target from the branch name.
+  This beta worktree is now linked to `hfmjvbjyectxiszutwen`; the original
+  checkout's production link was not changed. Use the repo-pinned CLI with
+  `npx supabase` (the old global CLI cannot parse PostgreSQL 17 config).
+  `npx supabase db push --dry-run` confirms the beta migrations are up to date.
+- Auth email confirmation remains required. Google/Facebook login flags are
+  disabled in the new beta until provider credentials are configured for it;
+  no production provider settings were changed.
+- Actual delivery still needs a real Resend key, a verified sender, and the
+  organization's postal address in this Preview branch. The send switch stays
+  **OFF**, and beta Supabase has no custom SMTP configured yet. Default Supabase
+  auth-mail restrictions may prevent external admin signup confirmations until
+  that mailer is configured. Do not mark real admin emails verified to bypass it.
+
+`scripts/configure-beta-preview.mjs` can reapply the branch-only environment
+configuration on this Windows workstation using the existing authenticated CLIs.
+It intentionally resets the beta send switch and unconfigured OAuth flags to
+false. Keys are obtained from the **beta** project and passed through stdin,
+never logged or committed. `scripts/verify-beta-environment.mjs` runs remote
+beta integration checks with a temporary fictional QA account and removes its
+identity/draft/preferences afterwards; it sends no email.
+
+Provisioning verification passed **13 live beta integration checks**: anonymous
+and ordinary-member denial, verified-admin access and page rendering,
+cross-origin rejection, disabled-send enforcement, individual audience counting,
+durable drafts, non-mutating unsubscribe GET, one-click POST, suppression, and
+revocation of an existing session. Temporary QA data was removed afterwards;
+the beta database returned to zero accounts/subscribers/campaigns and six
+unclaimed initial admin invitations. Only audit records of those fictional tests
+remain.
+
 ## First beta rollout
 
 1. Create/identify an **isolated beta Supabase project**. Do not clone production
@@ -125,6 +175,9 @@ than bypassing these protections. The composer uses `/api/admin/mail` instead.
 npm ci
 npm run test:admin
 npm run build
+# Optional live checks, beta only; requires authenticated Supabase CLI and
+# BLBD_ADMIN_MAIL_ENABLED=false in the branch Preview environment:
+npm run test:beta
 ```
 
 The schema tests use in-memory PostgreSQL (PGlite) and the actual two migrations,

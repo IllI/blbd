@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "test:admin": "node scripts/test-admin-schema.mjs && node scripts/test-admin-logic.mjs",
+    "test:beta": "node scripts/verify-beta-environment.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -29,6 +30,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.22",
     "googleapis": "^174.0.1",
+    "supabase": "^2.110.0",
     "typescript": "^5"
   }
 }

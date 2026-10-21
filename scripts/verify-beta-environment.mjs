@@ -19,6 +19,11 @@ const password = randomBytes(32).toString('base64url');
 // Explicit opt-in sends ONE draft preview to Resend's documented test sink,
 // never to a real inbox or audience. Default integration checks send no mail.
 const groupSend = process.argv.includes('--group-send');
+// Reuse the same isolated fixtures and sink-only audience verification through
+// the Webflow bearer transport; SSR portal requests still use cookie sessions.
+const webflow = process.argv.includes('--webflow');
+const webflowOrigin = 'https://blbd.webflow.io';
+let accessToken;
 const sinkTest = groupSend || process.argv.includes('--mail-sink');
 const email = sinkTest ? `delivered+blbd-admin-${randomUUID()}@resend.dev` : `beta-qa-${randomUUID()}@example.invalid`;
 const secondEmail = groupSend ? `delivered+blbd-group-${randomUUID()}@resend.dev` : null;
@@ -29,10 +34,12 @@ const client = createServerClient(`https://${ref}.supabase.co`, key('anon'), { c
 } });
 let userId, secondUserId, campaignId, groupId;
 let checks = 0;
-async function request(path, body, { cookie = true, requestOrigin = origin } = {}) {
+async function request(path, body, { cookie = true, requestOrigin = webflow && path.startsWith('/api/admin/') ? webflowOrigin : origin } = {}) {
+  const bearer = webflow && path.startsWith('/api/admin/');
   const response = await fetch(origin + path, { method: body ? 'POST' : 'GET', redirect: 'manual', headers: {
-    ...(cookie ? { Cookie: [...jar].map(([k,v]) => `${k}=${v}`).join('; ') } : {}),
-    ...(body ? { Origin: requestOrigin, 'Content-Type': 'application/json' } : {}),
+    ...(cookie && !bearer ? { Cookie: [...jar].map(([k,v]) => `${k}=${v}`).join('; ') } : {}),
+    ...(cookie && bearer && accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    ...(body || bearer ? { Origin: requestOrigin, 'Content-Type': 'application/json' } : {}),
   }, ...(body ? { body: JSON.stringify(body) } : {}) });
   const payload = response.headers.get('content-type')?.includes('application/json') ? await response.json() : null;
   return { response, payload };
@@ -40,17 +47,30 @@ async function request(path, body, { cookie = true, requestOrigin = origin } = {
 const check = (value, label) => { assert.ok(value, label); checks++; console.log(`PASS: ${label}`); };
 try {
   const unauth = await request('/api/admin/accounts', null, { cookie: false });
-  check(unauth.response.status === 401, 'Beta configured and anonymous admin access denied');
+  check(unauth.response.status === (webflow ? 403 : 401), 'Beta configured and anonymous admin access denied');
   const created = await admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { display_name: 'Temporary beta verification' } });
   if (created.error) throw new Error('Could not create temporary beta QA identity');
   userId = created.data.user.id;
   const login = await client.auth.signInWithPassword({ email, password });
   if (login.error) throw new Error('Could not sign in temporary beta QA identity');
+  accessToken = login.data.session.access_token;
   check((await request('/api/admin/accounts')).response.status === 403, 'Verified ordinary member cannot administer accounts');
   const promoted = await admin.from('profiles').update({ is_admin: true }).eq('id', userId);
   if (promoted.error) throw promoted.error;
   const accounts = await request('/api/admin/accounts');
   check(accounts.response.status === 200 && accounts.payload.accounts.some(a => a.id === userId), 'Verified beta admin can read beta accounts');
+  if (webflow) {
+    check(accounts.response.headers.get('access-control-allow-origin') === webflowOrigin
+      && !accounts.response.headers.has('access-control-allow-credentials'), 'Webflow bearer reads use exact-origin CORS without cookie credentials');
+    const preflight = await fetch(`${origin}/api/admin/mail`, { method: 'OPTIONS', headers: {
+      Origin: webflowOrigin, 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'authorization, content-type',
+    } });
+    check(preflight.status === 204 && preflight.headers.get('access-control-allow-origin') === webflowOrigin, 'Beta Webflow JSON bearer preflight succeeds');
+    const forged = await fetch(`${origin}/api/admin/accounts`, { headers: { Origin: webflowOrigin, Authorization: 'Bearer forged-token' } });
+    check(forged.status === 401 && forged.headers.get('access-control-allow-origin') === webflowOrigin, 'Forged bearer is denied with readable CORS error');
+    const otherSite = await request('/api/admin/accounts', null, { requestOrigin: 'https://other.webflow.io' });
+    check(otherSite.response.status === 403 && !otherSite.response.headers.has('access-control-allow-origin'), 'Another Webflow site cannot use beta admin transport');
+  }
   const csrf = await request('/api/admin/mail', { action: 'preview', audience: { kind: 'all' } }, { requestOrigin: 'https://attacker.invalid' });
   check(csrf.response.status === 403, 'Cross-origin admin mutation rejected');
   const portal = await request('/admin');

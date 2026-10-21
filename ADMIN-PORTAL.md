@@ -217,13 +217,28 @@ than bypassing these protections. The composer uses `/api/admin/mail` instead.
 
 ## Local verification
 
+The native Webflow migration is tracked in [issue #7](https://github.com/IllI/blbd/issues/7).
+Its page IDs, component IDs, designer contracts and publication gates are in
+`webflow/portal-migration/README.md`. The four new pages are unpublished drafts;
+the existing React portal remains the working fallback.
+
+`BLBD_WEBFLOW_ADMIN_ORIGIN=https://blbd.webflow.io` opts **only the isolated
+beta branch Preview** into native Webflow bearer requests. No other Webflow
+origin is accepted; this is not the permissive public API CORS policy. The
+server verifies the token with Supabase, verified email, and the current admin
+role on every request. Cross-origin cookies are never accepted, and malformed
+bearers never fall back to first-party cookies. Existing cookie/CSRF checks
+remain in place. Do not set this variable in production.
+
 ```sh
 npm ci
 npm run test:admin
+npm run test:native
 npm run build
 # Optional live checks, beta only; requires authenticated Supabase CLI and
-# BLBD_ADMIN_MAIL_ENABLED=false in the branch Preview environment:
+# the isolated branch Preview environment. The default sends no email:
 npm run test:beta
+npm run test:beta -- --webflow
 ```
 
 Auth-mail tests additionally exercise valid/forged/stale signatures, strict

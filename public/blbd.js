@@ -49,6 +49,9 @@
     supabaseUrl: (script && script.dataset.supabaseUrl) || '',
     supabaseKey: (script && script.dataset.supabaseKey) || '',
     appUrl: (script && script.dataset.appUrl) || 'https://app.blbd.life',
+    // Opt-in for designer-owned native portal menus. Existing sites keep
+    // their generated account dropdown/sidebar unless explicitly migrated.
+    nativePortal: !!(script && script.dataset.nativePortal === 'true'),
     // Defaults to /members rather than the homepage — landing back on the
     // homepage after a successful login reads as "did nothing." Still fully
     // overridable per site with data-after-login.
@@ -200,6 +203,24 @@
     signup: signup,
     logout: logout,
     refresh: applyState,
+    // Native Webflow controllers reuse the same verified/refreshable session.
+    // No service-role key or privileged logic is exposed by these helpers.
+    request: function (path, options) {
+      if (!/^\/rest\/v1\//.test(path)) return Promise.reject(new Error('Unsupported data path.'));
+      return (expired() && session ? refresh() : Promise.resolve()).then(function () { return api(path, options); });
+    },
+    serviceRequest: function (path, options) {
+      if (!/^\/api\//.test(path) || path.indexOf('\\') !== -1 || /[?#]/.test(path.split('?')[0])) return Promise.reject(new Error('Unsupported service path.'));
+      return (expired() && session ? refresh() : Promise.resolve()).then(function () {
+        options = options || {};
+        return fetch(CFG.appUrl.replace(/\/+$/, '') + path, {
+          method: options.method || 'GET', credentials: 'omit',
+          headers: Object.assign({ 'Content-Type': 'application/json' }, options.headers || {},
+            session && session.access_token ? { Authorization: 'Bearer ' + session.access_token } : {}),
+          body: options.body ? JSON.stringify(options.body) : undefined,
+        });
+      });
+    },
   };
   window.BLBD = BLBD;
 
@@ -580,7 +601,7 @@
       if (loggedIn) el.textContent = CFG.membersLinkText;
     });
 
-    mountNavAccount(loggedIn);
+    if (!CFG.nativePortal) mountNavAccount(loggedIn);
   }
 
   // ---------------------------------------------------------------
@@ -1973,7 +1994,7 @@
     mountDirectory();
     mountAccount();
     mountAuthWidgets();
-    mountMemberSidebar();
+    if (!CFG.nativePortal) mountMemberSidebar();
   }
 
   var ready = consumeAuthFragment().then(function (consumed) {
@@ -1981,7 +2002,7 @@
     return expired() && session ? refresh() : Promise.resolve(session);
   });
 
-  ready
+  BLBD.ready = ready
     .then(function () {
       return BLBD.isLoggedIn() ? fetchProfile() : null;
     })
@@ -1991,7 +2012,9 @@
       // /members etc. is redirected to login and never renders the page.
       if (gateMemberPages()) return;
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', start);
+        return new Promise(function (resolve) {
+          document.addEventListener('DOMContentLoaded', function () { start(); resolve(); }, { once: true });
+        });
       } else {
         start();
       }

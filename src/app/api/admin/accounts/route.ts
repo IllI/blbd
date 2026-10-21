@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import { requireAdmin, adminFailure, AdminError } from '@/lib/admin/auth';
 import { isUuid } from '@/lib/admin/validation';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { adminRoute, adminPreflight } from '@/lib/admin/transport';
 
-export async function GET(request: Request) {
+export function OPTIONS(request: Request) { return adminPreflight(request, ['GET', 'PATCH']); }
+export const GET = adminRoute(async (request: Request) => {
   try {
-    await requireAdmin();
+    await requireAdmin(request);
     const page = Math.max(1, Math.min(100000, Math.floor(Number(new URL(request.url).searchParams.get('page')) || 1)));
     const db = createAdminClient();
     const { data, error } = await db.auth.admin.listUsers({ page, perPage: 50 });
@@ -22,8 +24,8 @@ export async function GET(request: Request) {
       verified: !!u.email_confirmed_at, created_at: u.created_at,
     })) }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) { return adminFailure(error); }
-}
-export async function PATCH(request: Request) {
+});
+export const PATCH = adminRoute(async (request: Request) => {
   try {
     const { user } = await requireAdmin(request);
     const input = await request.json();
@@ -37,4 +39,4 @@ export async function PATCH(request: Request) {
     }
     return NextResponse.json({ success: true });
   } catch (error) { return adminFailure(error); }
-}
+});

@@ -3,13 +3,15 @@ import { requireAdmin, adminFailure, AdminError } from '@/lib/admin/auth';
 import { isUuid, parseAudience, parseMessage } from '@/lib/admin/validation';
 import { mailConfiguration, sendCampaignBatch, testCampaign } from '@/lib/admin/mail';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { adminRoute, adminPreflight } from '@/lib/admin/transport';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
-export async function GET(request: Request) {
+export function OPTIONS(request: Request) { return adminPreflight(request, ['GET', 'POST']); }
+export const GET = adminRoute(async (request: Request) => {
   try {
-    await requireAdmin();
+    await requireAdmin(request);
     const db = createAdminClient();
     const params = new URL(request.url).searchParams;
     const q = (params.get('q') ?? '').trim().slice(0, 100);
@@ -28,8 +30,8 @@ export async function GET(request: Request) {
     }));
     return NextResponse.json({ contacts: contacts.data, groups: groups.data, campaigns: enriched, mail: mailConfiguration() }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) { return adminFailure(error); }
-}
-export async function POST(request: Request) {
+});
+export const POST = adminRoute(async (request: Request) => {
   try {
     const { user } = await requireAdmin(request);
     const input = await request.json();
@@ -75,4 +77,4 @@ export async function POST(request: Request) {
     if (error instanceof SyntaxError || (error instanceof Error && /^(Choose|Invalid|Enter|Select)/.test(error.message))) return adminFailure(new AdminError(error.message));
     return adminFailure(error);
   }
-}
+});

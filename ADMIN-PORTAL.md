@@ -43,11 +43,22 @@ Production rollout requires a separately reviewed environment-policy change.
 - Auth email confirmation remains required. Google/Facebook login flags are
   disabled in the new beta until provider credentials are configured for it;
   no production provider settings were changed.
-- Actual delivery still needs a real Resend key, a verified sender, and the
-  organization's postal address in this Preview branch. The send switch stays
-  **OFF**, and beta Supabase has no custom SMTP configured yet. Default Supabase
-  auth-mail restrictions may prevent external admin signup confirmations until
-  that mailer is configured. Do not mark real admin emails verified to bypass it.
+- Auth mail can use the signed `/api/auth/send-email` hook, with the Resend key
+  kept inside Vercel rather than exported into SMTP configuration. Configure
+  `SUPABASE_AUTH_EMAIL_HOOK_SECRET` (Standard Webhooks format) and
+  `RESEND_FROM_EMAIL="BLBD Beta <contact@blbd.life>"` in this Preview branch,
+  deploy, and verify provider acceptance before enabling the matching HTTP
+  Send Email hook in **beta** Supabase. The provider domain must be verified.
+  Signatures/timestamps are verified against the raw body; invalid requests,
+  non-beta environments, external redirect URLs, and provider errors fail closed.
+  Retries use recipient-specific provider idempotency keys. Signup, recovery,
+  invitations, magic links, reauthentication and secure email-change token mapping
+  are covered by local tests. No tokens, addresses, or provider keys are logged.
+  Confirmation remains required; never mark real admin emails verified to bypass it.
+- Update campaigns remain **OFF** independently of auth mail. Enabling updates
+  additionally requires the organization's postal address and an explicit beta
+  send-switch change. No production credentials or Google Workspace MX changes
+  are needed. The hook does not send campaigns or grant admin access by itself.
 
 `scripts/configure-beta-preview.mjs` can reapply the branch-only environment
 configuration on this Windows workstation using the existing authenticated CLIs.
@@ -93,7 +104,8 @@ remain.
 
    Set secrets through the deployment's secret manager, never in git/chat.
    `NEXT_PUBLIC_*` changes require rebuilding. No credentials are included here.
-4. Enable email confirmation in beta Supabase Auth, configure its auth mailer,
+4. Enable email confirmation in beta Supabase Auth, configure its signed auth
+   email hook (or custom SMTP, but not both as active sending paths),
    and allow the beta backend's `/auth/confirm` redirect. The existing password,
    Google, and Yahoo/Webflow SDK flows are not replaced. Workspace inboxes do
    **not** automatically create BLBD accounts or share their passwords.
@@ -179,6 +191,11 @@ npm run build
 # BLBD_ADMIN_MAIL_ENABLED=false in the branch Preview environment:
 npm run test:beta
 ```
+
+Auth-mail tests additionally exercise valid/forged/stale signatures, strict
+redirect origins, provider failures, stable idempotency keys and each supported
+auth-mail action. A Resend sink acceptance test is not proof of real mailbox
+delivery; the admin must still finish signup using their own inbox.
 
 The schema tests use in-memory PostgreSQL (PGlite) and the actual two migrations,
 with minimal Supabase auth/storage stand-ins. No remote database or real mail is

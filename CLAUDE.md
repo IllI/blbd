@@ -19,12 +19,22 @@ Full architecture diagram + reasoning: `ARCHITECTURE.md`.
 
 ## The two Webflow sites — do not confuse them
 
+**Current environment map, confirmed by the user 2026-10-21:** production is
+**BLBD / blbd.life**, immutable site ID `69b9ae3792be3b49ef7eab96`; beta is
+**BLBD BETA / blbd.webflow.io**, site ID `693b4fc98a599c12cbf30e36`. The
+names/roles were swapped after the original notes below. Beta database
+`hfmjvbjyectxiszutwen` is isolated from production `ihghsacsxvibtwoiyjag`.
+The admin feature uses Vercel **Preview / feat/admin-portal**, configured at
+`blbd-git-feat-admin-portal-illi1s-projects.vercel.app`. Do not use the old
+`blbd-staging.vercel.app` alias: the audit found it points to the same old
+deployment as `app.blbd.life`. See `ADMIN-PORTAL.md` for the current rollout.
+
 | | `blbd.webflow.io` | `blbd-2.webflow.io` |
 | --- | --- | --- |
-| Status | Original, blog built out | **Active site being built out** |
+| Status | **Beta/development, now BLBD BETA** | **Production, now BLBD** |
 | Custom code | **Blocked** — no site plan, Webflow gates Custom Code behind a paid plan | Allowed (has a plan) |
 | Auth forms | Native Webflow User Accounts (`#wf-log-in-email` etc.), page `/log-in` | Was Memberstack (`data-ms-form`, `data-ms-member`), page `/login` (no hyphen) |
-| Use it for | Nothing right now — can't even install the script | All current work |
+| Use it for | Beta/development; no production edits | Public production; do not publish without approval |
 
 `blbd.js` supports **three** form conventions simultaneously (native Webflow
 IDs, Memberstack `data-ms-*` attributes, and a generic `data-blbd-form` /

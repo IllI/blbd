@@ -14,10 +14,13 @@ out of sync, trust `CLAUDE.md` over this one.
   database/payments layer that plugs into Webflow pages via one script tag
   (`public/blbd.js`). Never build a competing landing page or duplicate
   marketing content under `src/app/`.
-- **Two Webflow sites exist — don't confuse them.** `blbd-2.webflow.io` is
-  the live one being worked on (has a paid plan, allows custom code).
-  `blbd.webflow.io` is the original and currently can't even take custom
-  code (no site plan). Full comparison table in `CLAUDE.md`.
+- **Environment roles were switched.** Production is **BLBD / blbd.life**,
+  site `69b9ae3792be3b49ef7eab96`. Beta is **BLBD BETA / blbd.webflow.io**,
+  site `693b4fc98a599c12cbf30e36`. Identify sites by ID, not their old names.
+  Production DB is `ihghsacsxvibtwoiyjag`; beta DB is
+  `hfmjvbjyectxiszutwen`. See `ADMIN-PORTAL.md` for beta deployment details.
+  The old `blbd-staging.vercel.app` alias still points to the production
+  deployment and must NOT be used as a beta admin test host.
 - **`public/blbd.js` versioning matters.** Bare `/blbd.js` is the mutable
   "edge" copy that `blbd-2` currently tracks (fine for shipping fixes with
   zero Webflow-side edit). `public/vN/blbd.js` is a frozen, cache-forever

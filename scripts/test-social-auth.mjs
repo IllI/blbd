@@ -3,6 +3,9 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
 import { parseHTML } from 'linkedom';
+import React from 'react';
+import * as jsx from 'react/jsx-runtime';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 function load(path, imports, globals = {}) {
   const exports = {};
@@ -27,7 +30,10 @@ assert.deepEqual(JSON.parse(JSON.stringify(await readiness.socialReadiness())), 
 assert.equal(calls.at(-1).options.headers.apikey, 'public-anon');
 isolated = false; const before = calls.length;
 await assert.rejects(readiness.socialReadiness(), /isolated/); assert.equal(calls.length, before);
-isolated = true; listingFails = true; await assert.rejects(readiness.socialReadiness(), /verify/); listingFails = false;
+assert.equal(await readiness.socialReadinessForUI(), undefined, 'Production retains its existing flag-based provider UI');
+isolated = true; listingFails = true; await assert.rejects(readiness.socialReadiness(), /verify/);
+assert.deepEqual(JSON.parse(JSON.stringify(await readiness.socialReadinessForUI())), { google: false, yahoo: false });
+listingFails = false;
 
 const NextResponse = { json: Response.json, redirect: url => new Response(null, { status: 307, headers: { Location: String(url) } }) };
 const { safeNext } = load('../src/lib/redirects.ts', {});
@@ -100,4 +106,20 @@ assert.equal(event.defaultPrevented, true);
 assert.match(consent.document.querySelector('[data-blbd-social-status]').textContent, /privacy policy/);
 const prod = await dom('login', { google: true, yahoo: true }, 'https://blbd.life');
 assert.equal(prod.requests.length, 0, 'No controller behavior on production');
+
+// Existing beta portal auth pages expose the same providers using their own
+// current Button component, without changing production's optional providers.
+const componentExports = {};
+const componentCode = ts.transpileModule(readFileSync(new URL('../src/components/auth/OAuthButtons.tsx', import.meta.url), 'utf8'),
+  { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
+vm.runInNewContext(componentCode, { exports: componentExports, require: name => ({
+  react: React, 'react/jsx-runtime': jsx, '@/lib/supabase/client': {},
+  '@/lib/env': { GOOGLE_OAUTH_ENABLED: false, FACEBOOK_OAUTH_ENABLED: false },
+  '@/components/ui/Button': { Button: ({ children, disabled }) => React.createElement('button', { disabled }, children) },
+}[name]) });
+const betaUi = renderToStaticMarkup(React.createElement(componentExports.OAuthButtons, { betaProviders: { google: false, yahoo: false } }));
+assert.ok(betaUi.includes('Continue with Google') && betaUi.includes('Continue with Yahoo'));
+assert.equal((betaUi.match(/disabled=/g) ?? []).length, 2);
+assert.ok(betaUi.includes('beta provider setup'));
+assert.equal(renderToStaticMarkup(React.createElement(componentExports.OAuthButtons)), '');
 console.log('Social auth checks passed: beta isolation, Google/Yahoo mapping, readiness, PKCE callback/host, safe next, rate limit, native theme, consent and password form preservation');

@@ -7,6 +7,12 @@ export const SOCIAL_PROVIDERS = { google: 'google', yahoo: 'custom:yahoo' } as c
 export type SocialProvider = keyof typeof SOCIAL_PROVIDERS;
 export type SocialReadiness = { google: boolean; yahoo: boolean };
 
+/** A provider outage must never prevent the normal password form rendering. */
+export async function socialReadinessForUI(): Promise<SocialReadiness | undefined> {
+  if (!betaIsIsolated()) return undefined;
+  try { return await socialReadiness(); } catch { return { google: false, yahoo: false }; }
+}
+
 /** Read actual beta Auth configuration, not a browser flag or email domain.
  * No provider credentials, claims, profile data or service key leave the server. */
 export async function socialReadiness(): Promise<SocialReadiness> {

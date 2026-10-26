@@ -60,6 +60,9 @@ member login to unsubscribe.
 
 ## Current verified state
 
+- October 26: native email/password form transport is being restored separately
+  from the social buttons. See `PASSWORD-AUTH.md` for the beta-only POST flow,
+  first-party portal fallback and Webflow installation/verification gates.
 - MCP 2.2 headless pages/elements/components are available using the existing
   OAuth connection; the old local Data API token lacks `pages:read`.
 - No site-specific agent instructions were found on beta.

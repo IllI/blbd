@@ -7,6 +7,7 @@
     "test:beta": "node scripts/verify-beta-environment.mjs",
     "test:native": "node scripts/test-native-portal.mjs",
     "test:social": "node scripts/test-social-auth.mjs",
+    "test:password": "node scripts/test-password-auth.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

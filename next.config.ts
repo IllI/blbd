@@ -43,6 +43,14 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: '/blbd-auth.js',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Cache-Control', value: 'public, max-age=300, must-revalidate' },
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+        ],
+      },
+      {
         // Public, version-pinned beta social controller. CORS is required for
         // the registered Webflow script's cross-origin integrity check.
         source: '/blbd-social.js',

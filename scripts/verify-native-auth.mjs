@@ -33,7 +33,9 @@ try {
   check(new URL(consent.headers.get('location')).searchParams.get('auth_status') === 'signup_fields', 'Server enforces signup privacy acknowledgement');
   const created = await admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { display_name: 'Temporary native auth check' } });
   assert.ok(!created.error, 'Temporary fixture creation failed'); fixture = created.data.user.id;
-  const initial = await admin.from('profiles').select('is_admin,tier,avatar_url,display_name').eq('id', fixture).single();
+  const seeded = await admin.from('profiles').update({ avatar_url: `https://${ref}.supabase.co/storage/v1/object/public/avatars/${fixture}/qa-preserve.png` }).eq('id', fixture);
+  assert.ok(!seeded.error);
+  const initial = await admin.from('profiles').select('is_admin,membership_tier,avatar_url,display_name').eq('id', fixture).single();
   assert.ok(!initial.error);
   const invalid = await post({ mode: 'login', email, password: 'incorrect-fixture-password' });
   check(new URL(invalid.headers.get('location')).searchParams.get('auth_status') === 'invalid_credentials' && !cookies(invalid), 'Wrong password never creates a session');
@@ -45,7 +47,7 @@ try {
   check(dashboard.status === 200, 'Portal accepts session created by the migrated native form');
   const denied = await fetch(portal + '/api/admin/accounts', { headers: { Cookie: jar }, redirect: 'manual', signal: AbortSignal.timeout(15000) });
   check(denied.status === 403, 'Form fields cannot elevate an ordinary account to administrator');
-  const after = await admin.from('profiles').select('is_admin,tier,avatar_url,display_name').eq('id', fixture).single();
+  const after = await admin.from('profiles').select('is_admin,membership_tier,avatar_url,display_name').eq('id', fixture).single();
   check(JSON.stringify(after.data) === JSON.stringify(initial.data), 'Login preserves profile name, image, tier and role');
   if (sink) {
     assert.match(signupEmail, /^delivered\+blbd-native-[a-f0-9-]+@resend\.dev$/);

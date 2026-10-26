@@ -37,9 +37,12 @@ fallback token lacks `custom_code:read`. A supported Webflow plugin was offered
 as a reconnection path. Do not claim native password forms are repaired live
 until registration, readback, beta publication and verification are completed.
 
-After the backend Preview is ready, register a separate small inline loader
-that loads the immutable deployment's `/blbd-auth.js` with its exact SHA-256
-integrity and `crossOrigin='anonymous'`. Apply it only to auth page IDs
+The backend Preview is **READY** at
+`https://blbd-idskqr2bb-illi1s-projects.vercel.app` (commit `2f05259`), and the
+stable beta branch alias serves the new route. Register the separate inline
+loader `password-bootstrap.js`; its immutable controller returned 200 with
+anonymous CORS and SHA-256 `VM/+QTyQGqi+gzrHn0j7+na+UdMUewZf8ULllaj+v5E=`.
+Apply it only to auth page IDs
 `693b4fcb8a599c12cbf30eb7` and `693b4fcb8a599c12cbf30eb8` on beta site
 `693b4fc98a599c12cbf30e36`. Preserve `blbdbetasocialloader` and all other code.
 Inventory pending beta edits and obtain current whole-site publishing approval;
@@ -60,3 +63,30 @@ the October 21 publish approval already covered the previous release.
   Post-install browser and real-account confirmation checks remain required.
 
 Google/Yahoo app credentials are a separate blocker tracked in issue #8.
+
+## October 26 verification results
+
+- Password route/controller, social, native-portal and signed auth-email tests
+  passed; Next.js production build/typecheck passed.
+- Applied the controller in a DOM test to the **actual fetched published** login
+  and signup markup. Both bound correctly, with all visible input/button classes
+  and both social links preserved. This did not install it in Webflow or perform
+  responsive browser visual QA.
+- The existing live beta regression suite passed all **15** admin/newsletter
+  checks, without sending mail; its QA fixtures were removed.
+- The new deployed route passed **13** live checks, including a usable portal
+  cookie session, incorrect-password denial, hostile/opaque Origin rejection,
+  server privacy validation, no form-based admin escalation and preservation of
+  a populated avatar URL, display name, membership tier and role.
+- One real signup request used only this run's generated `delivered+...@resend.dev`
+  test sink. The signed mail hook accepted it, the account remained unverified,
+  marketing consent stayed false and login was denied pending confirmation.
+  Both temporary auth accounts were deleted. No real subscriber/member inbox
+  received a test, and no production database/site/deployment was changed.
+- The test's first run selected `tier` instead of the actual `membership_tier`
+  column. It failed before login and cleaned its fixture; the corrected full run
+  passed. Do not infer a production profile defect from that QA assertion.
+
+Opening an actual email confirmation link, browser visual checks, and the
+post-install Webflow browser flow remain outstanding. The React beta portal
+continues to be the working login/signup surface while Webflow access is restored.

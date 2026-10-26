@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
 import { parseHTML } from 'linkedom';
+import { createHash } from 'node:crypto';
 
 const portal = 'https://blbd-git-feat-admin-portal-illi1s-projects.vercel.app';
 const webflow = 'https://blbd.webflow.io';
@@ -105,4 +106,15 @@ const prod = dom(false, '', 'https://blbd.life'); assert.equal(prod.form.getAttr
 const safeUi = dom(false, '?next=https%3A%2F%2Fevil.invalid&auth_status=%3Cscript%3E');
 assert.equal(safeUi.form.querySelector('[name="next"]').value, '/dashboard');
 assert.equal(safeUi.document.querySelector('.user-form-error-msg').textContent, 'Designer error');
+const bootstrap = readFileSync('webflow/portal-migration/password-bootstrap.js', 'utf8');
+const loaded = [];
+for (const pathname of ['/log-in', '/sign-up', '/author']) {
+  const scripts = [];
+  vm.runInNewContext(bootstrap, { location: { origin: webflow, pathname }, document: {
+    createElement: () => ({}), body: { appendChild: script => scripts.push(script) },
+  } });
+  assert.equal(scripts.length, pathname === '/author' ? 0 : 1); loaded.push(...scripts);
+}
+assert.equal(loaded[0].crossOrigin, 'anonymous');
+assert.equal(loaded[0].integrity, 'sha256-' + createHash('sha256').update(controller.replaceAll('\r\n', '\n')).digest('base64'));
 console.log('Password auth checks passed: isolated beta, exact Origin/host, bounded POST, safe redirects, validation, consent, errors, native forms, idempotency and submit behavior');

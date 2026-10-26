@@ -1,7 +1,7 @@
 # Native email/password auth — beta only
 
-Until the October 26 saved changes are published, the beta forms still use
-Webflow's retired User Accounts handler.
+The October 26 beta release replaces the retired Webflow User Accounts
+submission handler on the existing login/signup forms.
 The social loader does not supply password behavior. Preserve the existing
 native UI; `public/blbd-auth.js` binds just `/log-in` and `/sign-up` forms.
 
@@ -32,18 +32,19 @@ native UI; `public/blbd-auth.js` binds just `/log-in` and `/sign-up` forms.
 
 ## Installation gate
 
-As of October 26, 2026 the controller is **installed in saved Webflow code but
-not published**. The supported Webflow integration is now connected. Registered
+As of October 26, 2026 the controller is **installed and published on beta**.
+The supported Webflow integration is now connected. Registered
 `blbdbetapasswordloader` version `0.1.0` and added it to just the two beta auth
 pages; readback confirms each retains `blbdbetasocialloader` version `0.1.0`.
 Its Webflow-hosted source was fetched and matched the reviewed bootstrap.
 No markup, styles, global freeform code or production bindings were changed.
 
-The page inventory contains no unrelated edits newer than beta's last publish
-at 2026-10-21T21:20:47.657Z. All four unfinished portal pages still have
-`draft=true`. A new explicit beta publication question was sent to the user;
-publication is pending their answer. The earlier October 21 approval covered
-the previous release. Do not claim the forms are repaired live yet.
+Before release, the page inventory contained no unrelated edits newer than
+the prior beta publish at 2026-10-21T21:20:47.657Z. After explicit user approval,
+published **2026-10-26T16:43:04.440Z** (11:43 AM America/Chicago), task
+`4c24c4ec-7052-422d-b202-d6826afb8445`, to the Webflow subdomain only with
+`customDomains=[]`. All four unfinished portal pages remain drafts;
+`/admin/newsletter` still returns 404. Production was not changed.
 
 The backend Preview is **READY** at
 `https://blbd-idskqr2bb-illi1s-projects.vercel.app` (commit `2f05259`), and the
@@ -107,6 +108,16 @@ and Supabase persisted email confirmation. One generated Resend test sink was
 used; both temporary accounts were removed. This is programmatic verification,
 not an inbox delivery or browser visual check.
 
-Browser visual checks and the post-publication Webflow browser flow remain
-outstanding. The React beta portal remains the working login/signup surface
-until the saved Webflow scripts are published and checked.
+Post-publication fetches verified `/log-in` and `/sign-up` return 200 with
+exactly one password loader and one social loader each. In a separate temporary
+browser tab, the published login form submitted synthetic invalid credentials
+to the beta backend and returned to the native error block with the expected
+message. Signup visibly retains the existing theme, repaired labels, privacy
+link and social controls; existing auth links preserve `next`. The temporary
+tab was closed without entering real credentials or creating a browser account.
+
+The browser check covers native form binding, layout and error feedback; valid
+login/signup confirmation and session success were verified programmatically
+by the 18-check suite, not by logging a real person into the browser. Full native
+member-page cutover and responsive multi-device visual QA remain outstanding.
+Successful auth still hands off to the working first-party beta portal.

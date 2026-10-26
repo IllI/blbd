@@ -63,6 +63,11 @@ member login to unsubscribe.
 - October 26: native email/password form transport is being restored separately
   from the social buttons. See `PASSWORD-AUTH.md` for the beta-only POST flow,
   first-party portal fallback and Webflow installation/verification gates.
+  The separate password loader is now published only on beta's existing
+  `/log-in` and `/sign-up` pages (2026-10-26T16:43:04.440Z), preserving both
+  social loaders and designer markup/styles. Eighteen live backend checks and
+  the published browser invalid-login flow passed. Portal drafts remain
+  unpublished, and production is unchanged.
 - MCP 2.2 headless pages/elements/components are available using the existing
   OAuth connection; the old local Data API token lacks `pages:read`.
 - No site-specific agent instructions were found on beta.

@@ -1,6 +1,7 @@
 # Native email/password auth — beta only
 
-The published beta forms still use Webflow's retired User Accounts handler.
+Until the October 26 saved changes are published, the beta forms still use
+Webflow's retired User Accounts handler.
 The social loader does not supply password behavior. Preserve the existing
 native UI; `public/blbd-auth.js` binds just `/log-in` and `/sign-up` forms.
 
@@ -31,22 +32,29 @@ native UI; `public/blbd-auth.js` binds just `/log-in` and `/sign-up` forms.
 
 ## Installation gate
 
-As of October 26, 2026 this controller is **not installed/published in Webflow**.
-The old remote MCP connection timed out twice during initialization. The local
-fallback token lacks `custom_code:read`. A supported Webflow plugin was offered
-as a reconnection path. Do not claim native password forms are repaired live
-until registration, readback, beta publication and verification are completed.
+As of October 26, 2026 the controller is **installed in saved Webflow code but
+not published**. The supported Webflow integration is now connected. Registered
+`blbdbetapasswordloader` version `0.1.0` and added it to just the two beta auth
+pages; readback confirms each retains `blbdbetasocialloader` version `0.1.0`.
+Its Webflow-hosted source was fetched and matched the reviewed bootstrap.
+No markup, styles, global freeform code or production bindings were changed.
+
+The page inventory contains no unrelated edits newer than beta's last publish
+at 2026-10-21T21:20:47.657Z. All four unfinished portal pages still have
+`draft=true`. A new explicit beta publication question was sent to the user;
+publication is pending their answer. The earlier October 21 approval covered
+the previous release. Do not claim the forms are repaired live yet.
 
 The backend Preview is **READY** at
 `https://blbd-idskqr2bb-illi1s-projects.vercel.app` (commit `2f05259`), and the
 stable beta branch alias serves the new route. Register the separate inline
 loader `password-bootstrap.js`; its immutable controller returned 200 with
 anonymous CORS and SHA-256 `VM/+QTyQGqi+gzrHn0j7+na+UdMUewZf8ULllaj+v5E=`.
-Apply it only to auth page IDs
+It is applied only to auth page IDs
 `693b4fcb8a599c12cbf30eb7` and `693b4fcb8a599c12cbf30eb8` on beta site
 `693b4fc98a599c12cbf30e36`. Preserve `blbdbetasocialloader` and all other code.
-Inventory pending beta edits and obtain current whole-site publishing approval;
-the October 21 publish approval already covered the previous release.
+The registered loader is hosted at
+`https://cdn.prod.website-files.com/693b4fc98a599c12cbf30e36%2F689e5ba67671442434f3ca35%2F6adf80c212eff9c0216ea4ab%2Fblbdbetapasswordloader-0.1.0.js`.
 
 ## Verification
 
@@ -59,6 +67,11 @@ the October 21 publish approval already covered the previous release.
   one temporary signup at an independently validated generated Resend test-sink
   address. Checks hook acceptance and unverified-login denial; removes fixtures.
   It does not claim to have opened the emailed link in a browser.
+- `node scripts/verify-native-auth.mjs --confirm-sink`: additionally reads ONLY
+  this run's generated beta fixture confirmation hash in memory, verifies it
+  through Supabase, exchanges the resulting PKCE code using the original signup
+  verifier cookie, and opens the dashboard with the resulting session. No hash,
+  code or cookie is printed. Does not read real users' tokens or inboxes.
 - Run social, native-portal, auth-email and build checks before committing.
   Post-install browser and real-account confirmation checks remain required.
 
@@ -87,6 +100,13 @@ Google/Yahoo app credentials are a separate blocker tracked in issue #8.
   column. It failed before login and cleaned its fixture; the corrected full run
   passed. Do not infer a production profile defect from that QA assertion.
 
-Opening an actual email confirmation link, browser visual checks, and the
-post-install Webflow browser flow remain outstanding. The React beta portal
-continues to be the working login/signup surface while Webflow access is restored.
+After Webflow reconnection, an extended run passed **18** live checks: the real
+generated signup token produced the expected callback, the original verifier
+exchanged its code successfully, the resulting session opened the dashboard,
+and Supabase persisted email confirmation. One generated Resend test sink was
+used; both temporary accounts were removed. This is programmatic verification,
+not an inbox delivery or browser visual check.
+
+Browser visual checks and the post-publication Webflow browser flow remain
+outstanding. The React beta portal remains the working login/signup surface
+until the saved Webflow scripts are published and checked.

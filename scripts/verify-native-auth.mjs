@@ -17,7 +17,8 @@ const admin = createClient(`https://${ref}.supabase.co`, key('service_role'), { 
 const runId = randomUUID(), password = randomBytes(32).toString('base64url');
 const email = `native-auth-${runId}@example.invalid`;
 const signupEmail = `delivered+blbd-native-${runId}@resend.dev`;
-const sink = process.argv.includes('--mail-sink');
+const confirmSink = process.argv.includes('--confirm-sink');
+const sink = confirmSink || process.argv.includes('--mail-sink');
 let fixture, signupFixture;
 const cookies = response => response.headers.getSetCookie().map(c => c.split(';')[0]).join('; ');
 const post = (fields, origin = webflow) => fetch(portal + '/auth/password', { method: 'POST', redirect: 'manual',
@@ -60,6 +61,31 @@ try {
     check(user && !user.email_confirmed_at && user.user_metadata.marketing_consent === false, 'New account remains unverified and marketing is not silently opted in');
     const unconfirmed = await post({ mode: 'login', email: signupEmail, password });
     check(new URL(unconfirmed.headers.get('location')).searchParams.get('auth_status') === 'confirm_email' && !cookies(unconfirmed), 'Unverified native signup cannot sign in');
+    if (confirmSink) {
+      assert.match(signupFixture, /^[a-f0-9-]{36}$/);
+      // Read ONLY this generated beta fixture's confirmation hash in memory.
+      // Do not inspect real accounts, retrieve inbox contents, or print the hash.
+      const sql = `SELECT confirmation_token FROM auth.users WHERE id = '${signupFixture}'::uuid AND email = '${signupEmail}'`;
+      const command = `. C:/Users/cityz/.codex/bin/blbd-beta-management.ps1 -Action status -BetaRef ${ref} | Out-Null; $taskToken=Api POST 'projects/${ref}/database/query' @{query=\"${sql}\";read_only=$true}; $taskToken | ConvertTo-Json -Compress`;
+      let token;
+      try {
+        const result = JSON.parse(execFileSync('pwsh', ['-NoProfile', '-NonInteractive', '-Command', command], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 30000 }));
+        token = (Array.isArray(result) ? result[0] : result)?.confirmation_token;
+      } catch { throw new Error('Could not read generated beta fixture confirmation hash.'); }
+      check(typeof token === 'string' && /^[A-Za-z0-9_-]{20,256}$/.test(token), 'Generated signup has a real confirmation token');
+      const verify = new URL(`https://${ref}.supabase.co/auth/v1/verify`);
+      verify.searchParams.set('token', token); verify.searchParams.set('type', 'signup');
+      verify.searchParams.set('redirect_to', portal + '/auth/callback?next=%2Fdashboard');
+      const verified = await fetch(verify, { redirect: 'manual', signal: AbortSignal.timeout(15000) });
+      const callback = new URL(verified.headers.get('location') || 'https://invalid.invalid');
+      check(callback.origin === portal && callback.pathname === '/auth/callback' && !!callback.searchParams.get('code'), 'Actual signup token verification produces a first-party PKCE callback');
+      const exchange = await fetch(callback, { headers: { Cookie: cookies(signup) }, redirect: 'manual', signal: AbortSignal.timeout(15000) });
+      check(exchange.status === 307 && exchange.headers.get('location') === portal + '/dashboard' && !!cookies(exchange), 'Original signup verifier exchanges the code for a portal cookie session');
+      const confirmedPage = await fetch(portal + '/dashboard', { headers: { Cookie: cookies(exchange) }, redirect: 'manual', signal: AbortSignal.timeout(15000) });
+      check(confirmedPage.status === 200, 'Confirmed signup session opens the portal dashboard');
+      const confirmedUser = await admin.auth.admin.getUserById(signupFixture);
+      check(!!confirmedUser.data.user?.email_confirmed_at, 'Confirmation was persisted by Supabase, not a client flag');
+    }
   }
   console.log(`Native auth live verification passed: ${checks} checks${sink ? ', one signup email to Resend test sink only' : ', no email sent'}.`);
 } finally {

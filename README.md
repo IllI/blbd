@@ -5,9 +5,12 @@ Welcome, Jonas! BLBD (Better Living Better Dying) uses **Figma for design**,
 and admin portal**, backed by Supabase. Design changes are developed and
 reviewed in beta first.
 
-**New workstation:** follow [ONBOARDING.md](ONBOARDING.md). It includes the
-first prompt for Jonas's Claude app, laptop prerequisites, beta access, and
-[Figma, Webflow and Vercel MCP setup](MCP.md).
+**New workstation:** [ONBOARDING.md](ONBOARDING.md) and
+[CONTRIBUTING.md](CONTRIBUTING.md) tell Claude how to install prerequisites,
+initialize GitHub authentication/fork/remotes, and start the local app.
+`CLAUDE.md` and `AGENTS.md` require that contribution procedure during setup.
+[OWNER-SETUP.md](OWNER-SETUP.md) lists what the owner can prepare beforehand,
+including branch-specific Vercel env and the optional beta Deploy Hook.
 
 ## Start from the current beta branch
 
@@ -16,30 +19,35 @@ Until the beta work is merged, use `feat/admin-portal` rather than `main`:
 ```sh
 git clone --branch feat/admin-portal https://github.com/IllI/blbd.git
 cd blbd
-npm ci
+npm run setup:workstation
 ```
 
-Copy [.env.local.example](.env.local.example) to `.env.local` using
-`cp .env.local.example .env.local` on macOS/Linux or
-`Copy-Item .env.local.example .env.local` in PowerShell, then run
-`npm run dev`. Open [localhost:3000/login](http://localhost:3000/login).
+The setup command runs `npm ci`, creates `.env.local` from the tracked example
+only if absent, and reports GitHub CLI/auth status. Claude then completes
+GitHub sign-in, verifies contribution remotes and starts `npm run dev`.
+Open [localhost:3000/login](http://localhost:3000/login).
 
 The template has dummy values for build/layout work. Real sign-in, member
 data and admin access require **beta** configuration; see [SETUP.md](SETUP.md).
 Do not overwrite an existing local env file. Node.js 22 LTS (22.13+) is the
-recommended baseline; `.nvmrc` selects Node 22. The lockfile controls dependencies.
+recommended baseline; Node 24 LTS is also supported. `.nvmrc` selects Node 22.
+The lockfile controls dependencies; GitHub CLI is a separate workstation tool.
 
 Open a **local Code session** in Claude Desktop and select this cloned
 folder, or run `claude` here. [CLAUDE.md](CLAUDE.md) provides project context;
 [AGENTS.md](AGENTS.md) directs other agents to the same instructions.
 [.mcp.json](.mcp.json) shares all three remote MCP endpoints. Each person
-still needs account invitations, server trust and OAuth sign-in.
+still needs their own server trust/sign-ins for the services used. Private
+Vercel project access is optional for GitHub contributions; don't buy a seat
+or share owner credentials just to bootstrap a laptop.
 
 ## Find the right context
 
 | Document | Purpose |
 | --- | --- |
-| [ONBOARDING.md](ONBOARDING.md) | Jonas's first-day workstation guide and copyable Claude prompt |
+| [ONBOARDING.md](ONBOARDING.md) | First-day workstation procedure and agent startup context |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Executable local setup, GitHub login/fork/remotes, PRs and beta builds |
+| [OWNER-SETUP.md](OWNER-SETUP.md) | Owner preparation, personal preview env and optional beta hook activation |
 | [ENVIRONMENTS.md](ENVIRONMENTS.md) | Current beta/production IDs, branches and hosting boundary |
 | [MCP.md](MCP.md) | Figma, Webflow and Vercel connections and read-only checks |
 | [DESIGN.md](DESIGN.md) | Figma handoff, implementation destinations and review |
@@ -62,6 +70,8 @@ Next.js 15 · React 19 · TypeScript · vanilla CSS · Supabase · Stripe · Res
 Versions and scripts are defined in [package.json](package.json).
 
 - `npm run dev` — local app on port 3000.
+- `npm run setup:workstation` — install locked deps, create env safely, inspect GitHub setup.
+- `npm run check:workstation` — read-only workstation prerequisite check.
 - `npm run build` — build and type-check.
 - `npm run lint` — ESLint.
 - `npm run test:admin` — local database/admin/auth-mail logic tests.
@@ -73,3 +83,9 @@ Personal preview branches need their own verified beta env configuration.
 `blbd-staging.vercel.app` is a legacy production alias, not isolated beta.
 Pushing to `main` can deploy production. See [ENVIRONMENTS.md](ENVIRONMENTS.md)
 before publishing or deploying.
+
+Public GitHub contributions do not require a paid Vercel team seat. The
+existing integration automatically builds reviewed merges to the shared beta
+branch. A fork preview can need owner authorization and isolated configuration.
+The optional Actions Deploy Hook is checked in but disabled by default; see
+[OWNER-SETUP.md](OWNER-SETUP.md) before activating it.

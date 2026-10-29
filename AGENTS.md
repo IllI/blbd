@@ -4,6 +4,15 @@ Before making changes, read [CLAUDE.md](CLAUDE.md) and
 [SKILLS.md](SKILLS.md) in full, then [ENVIRONMENTS.md](ENVIRONMENTS.md).
 For a new laptop, also read [ONBOARDING.md](ONBOARDING.md),
 [MCP.md](MCP.md), [DESIGN.md](DESIGN.md), and [SETUP.md](SETUP.md).
+For workstation initialization, also read [CONTRIBUTING.md](CONTRIBUTING.md)
+and [OWNER-SETUP.md](OWNER-SETUP.md). Execute contribution setup as part of
+bootstrap: check/install Git, supported Node/npm and GitHub CLI; run
+`npm run setup:workstation`; guide Jonas through his own GitHub sign-in;
+discover his username; configure a verified writable upstream or fork remote;
+create/reuse his design branch; build and start the local app. Do not stop
+after dependency installation. Do not create hosting/database projects or push a test
+commit just to initialize. The owner setup checklist is separate from laptop
+setup; report any owner-only prerequisites without blocking local design.
 These checked-in files supply shared context; personal machine state and old
 session notes are not prerequisites.
 
@@ -22,6 +31,11 @@ session notes are not prerequisites.
 - [.mcp.json](.mcp.json) shares **Figma, Webflow and Vercel** endpoints.
   Each teammate supplies their own OAuth and account permissions. Verify with
   read-only calls; call `webflow_guide_tool` before other Webflow tools.
+- The public GitHub fork/PR workflow needs no paid Vercel contributor seat.
+  Private Vercel MCP/dashboard/env access is optional, not a bootstrap blocker.
+  Reviewed merges to `feat/admin-portal` automatically use existing Git
+  deployment. The optional beta Actions hook is opt-in; see OWNER-SETUP.md.
+  Never target `main` or share owner credentials as a contribution workaround.
 - Inspect existing env before creating it. The tracked example is for
   build/layout preparation; it does not provide working authentication.
   Keep local mail off and secrets out of output/browser code/git.

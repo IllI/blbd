@@ -7,9 +7,12 @@ production. [ENVIRONMENTS.md](ENVIRONMENTS.md) defines the current targets.
 
 ## Local build and layout work
 
-From the repo root on the beta branch, run `npm ci`. Copy
-[.env.local.example](.env.local.example) to `.env.local` if absent, then
-run `npm run dev`. See onboarding for PowerShell/macOS copy commands.
+From the repo root on the beta branch, run `npm run setup:workstation`.
+This installs locked dependencies with `npm ci` and copies
+[.env.local.example](.env.local.example) only if `.env.local` is absent.
+Then complete [CONTRIBUTING.md](CONTRIBUTING.md): GitHub CLI login, verified
+writable fork/upstream remotes and a local design branch. Run `npm run build`
+and `npm run dev`. See [OWNER-SETUP.md](OWNER-SETUP.md) for advance owner tasks.
 
 The example uses a dummy Supabase host/key, blank service credentials, beta
 guard settings, localhost app URL and disabled mail/OAuth flags. Those public
@@ -63,6 +66,10 @@ look enabled.
 
 ## Optional Vercel CLI env retrieval
 
+This is for an already authorized maintainer. Jonas can contribute through
+GitHub without a paid Vercel seat, private MCP access or env export. Supply
+only needed beta public values securely; do not send the owner's credentials.
+
 Use only with project permission and a deliberate need for local env access.
 MCP OAuth and CLI login are separate. Install the CLI if needed
 (`npm install -g vercel`), then:
@@ -87,6 +94,13 @@ through the approved secure channel, not from Production.
 See [Vercel env CLI reference](https://vercel.com/docs/cli/env).
 
 ## Maintainer: feature-branch previews
+
+The default contribution route uses local/fork PR review and an owner-reviewed
+merge to the already configured shared beta. For an optional immediate personal
+preview, the initial branch is `jonas/design-first-pass`; see the exact env
+table in [OWNER-SETUP.md](OWNER-SETUP.md). No new env is required for the
+existing shared-beta Git pipeline. The optional hook workflow is opt-in and
+targets only `feat/admin-portal`.
 
 A personal branch based on `feat/admin-portal` gets code, not that branch's
 Vercel env overrides. Before functional preview review:

@@ -24,6 +24,11 @@ Vercel project: **`blbd`**, team/scope **`illi1s-projects`**. These are existing
 resources; a new teammate does not create replacement projects or sites.
 The initial laptop setup uses `http://localhost:3000` for the portal.
 
+The public GitHub repository supports the free fork/PR contribution path in
+[CONTRIBUTING.md](CONTRIBUTING.md). Private Vercel project access is optional
+for Jonas. The owner can prepare invitations, personal preview variables and
+the optional beta-only Actions hook using [OWNER-SETUP.md](OWNER-SETUP.md).
+
 **`blbd-staging.vercel.app` is not beta.** The previous audit found it pointed
 to the same deployment as production. Do not test beta through it or move its
 alias. `blbd-life.vercel.app` is also a legacy manually managed alias, not an
@@ -38,8 +43,11 @@ are updated. A clone defaults to a single repository root containing
 `package.json`; there is no required nested `blbd-portal/` folder and no
 dependency on the owner's Windows paths or other local worktrees.
 
-Jonas should make changes on a personal branch based on `feat/admin-portal`
-and open a PR against `feat/admin-portal`. Git integration can create a
+Jonas should make changes on a personal branch based on `feat/admin-portal`,
+push to a verified personal fork (or upstream if he has write access), and
+open a PR against `IllI/blbd:feat/admin-portal`. The owner-reviewed merge into
+that branch automatically builds shared beta. Fork previews can require
+owner authorization. Git integration can create a
 Preview when that branch is pushed, but **the beta secrets are configured
 specifically for Preview / `feat/admin-portal`**. A personal branch does not
 inherit those overrides. Before using its preview, a maintainer must configure

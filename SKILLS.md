@@ -6,10 +6,15 @@ regardless of the local directory name. Current direction: **2026-10-29**.
 
 ## Set up Jonas's laptop
 
-Follow [ONBOARDING.md](ONBOARDING.md), [MCP.md](MCP.md) and
-[SETUP.md](SETUP.md). Inspect the workstation before changing it. Use
-`npm ci`, preserve an existing env file, and keep mail off. Verify each MCP
-with a read-only request and report invitations/OAuth/config still needed.
+Follow [ONBOARDING.md](ONBOARDING.md), [CONTRIBUTING.md](CONTRIBUTING.md),
+[MCP.md](MCP.md), [SETUP.md](SETUP.md) and [OWNER-SETUP.md](OWNER-SETUP.md).
+Inspect/install Git, supported Node/npm and GitHub CLI. Run
+`npm run setup:workstation`, preserve existing env and keep mail off.
+Complete the user's own GitHub authentication, discover their username,
+configure a verified upstream/fork remote, and create/reuse the design branch.
+Build, start dev and verify the local URL; setup is more than installing deps.
+Verify needed design MCPs and any authorized Vercel tools with read-only calls.
+Missing private Vercel access is optional; don't require a paid seat or owner token.
 Don't provision infrastructure, publish, run migrations or send mail.
 
 ## Implement a Figma design
@@ -19,8 +24,11 @@ Public website work goes to Webflow beta. Member/admin portal work goes to
 Next.js on Vercel. Use existing components and tokens, preserve auth/role/data
 behavior, and compare responsive screenshots with the design.
 
-Make a personal branch from `feat/admin-portal`; target that branch in the
-PR. Run `npm run build` and relevant existing regression tests. Verify beta
+Make a personal branch from `feat/admin-portal`; use the writable fork or
+upstream remote from CONTRIBUTING.md and target `IllI/blbd:feat/admin-portal`
+in the PR. Owner-reviewed merges automatically build shared beta through
+existing Git integration; the optional Actions hook needs deliberate owner
+activation. Run `npm run build` and relevant existing regression tests. Verify beta
 isolation before using any personal-branch Preview; it does not inherit the
 shared beta branch's overrides.
 

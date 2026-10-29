@@ -65,6 +65,10 @@ origins, and don't remove the existing beta auth loaders as a styling cleanup.
    validation performed, remaining gaps and the beta URL when verified.
 4. Target `feat/admin-portal` while it remains the beta base. A new personal
    preview branch needs its own beta env configuration before functional QA.
+   Follow [CONTRIBUTING.md](CONTRIBUTING.md) for GitHub login, fork/remotes and
+   PR setup. Private Vercel access is optional; owner-reviewed beta merges
+   already trigger automatic builds. [OWNER-SETUP.md](OWNER-SETUP.md) lists
+   advance configuration for a personal preview.
 5. Treat merging, Webflow publishing and production deployment as release
    steps. Webflow publication may include other teammates' drafts; inventory
    and coordinate the full pending change set first.

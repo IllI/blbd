@@ -8,6 +8,9 @@ a workstation, or using remote tools.
 Read [AGENTS.md](AGENTS.md), [SKILLS.md](SKILLS.md),
 [ENVIRONMENTS.md](ENVIRONMENTS.md), [ONBOARDING.md](ONBOARDING.md),
 [MCP.md](MCP.md), [DESIGN.md](DESIGN.md), and [SETUP.md](SETUP.md).
+For initialization, read [CONTRIBUTING.md](CONTRIBUTING.md) and
+[OWNER-SETUP.md](OWNER-SETUP.md) too. The contribution procedure is required
+bootstrap context, not an optional explanation to leave for the user.
 Load these files explicitly; do not assume arbitrary Markdown is auto-loaded.
 Instructions must work from a fresh clone, without the owner's machine,
 personal memory, existing CLIs, credentials, or previous session approvals.
@@ -17,6 +20,16 @@ Install locked dependencies, create the example env only if absent, verify
 MCPs with read-only requests, and report missing invitations/configuration
 without displaying secrets. Start and check the local app; distinguish
 placeholder layout/build checks from authenticated beta verification.
+
+Initialize the contribution workflow too: inspect/install Git, supported
+Node/npm and GitHub CLI, run `npm run setup:workstation`, guide the user's
+own GitHub browser sign-in, discover their username, and configure either an
+authorized upstream remote or a verified personal fork. Create/reuse
+`jonas/design-first-pass`, preserving existing work. Run the build, start dev
+and verify the local URL. The script installs locked dependencies and safely
+creates env; the agent must finish the GitHub steps in CONTRIBUTING.md.
+Don't ask the owner for Jonas's username as a blocker: discover it after login.
+Don't publish a test commit or create an extra Vercel project during setup.
 
 ## Product boundary
 
@@ -48,6 +61,12 @@ Supabase `ihghsacsxvibtwoiyjag`, and the Vercel Production target.
 
 [.mcp.json](.mcp.json) supplies the official remote **Figma, Webflow and Vercel**
 server definitions. OAuth and team/site/file invitations are per person.
+Jonas's free public-repo contribution path does not require a paid Vercel
+seat or private Vercel MCP/dashboard/env access. Missing private Vercel access
+must not block local design, a GitHub fork, or a PR. Never use owner tokens.
+Reviewed merges to `feat/admin-portal` already trigger shared beta builds.
+OWNER-SETUP.md lists optional personal-preview env settings and the checked-in
+beta-only Actions hook, which remains disabled unless the owner opts in.
 Read [MCP.md](MCP.md); don't mistake a configured server or public docs search
 for authenticated access. Use the local Code session/CLI for repo work;
 ordinary desktop chat needs explicit files and its own working connectors.
@@ -76,7 +95,7 @@ Claude settings into another workstation. MCP login and CLI login are separate.
 - Use Figma frame/node context, existing components, CSS tokens and responsive
   states. See [DESIGN.md](DESIGN.md); don't blindly paste generated React into
   Webflow or create a replacement app.
-- Local setup does not run remote migrations, create projects, grant roles,
+- Local setup does not run remote migrations, create hosting/database projects, grant roles,
   change shared env, send mail, publish sites, or deploy production.
 - Obtain explicit release authorization before Webflow publication (whole-site
   changes may include other teammates' drafts), `vercel --prod`, production

@@ -16,6 +16,12 @@ steps from the shared onboarding guide. Dummy values do not supply working
 auth/data. The member/admin portal stays on Vercel, public-site work stays in
 Webflow beta, and local mail stays off.
 
+The same required contribution bootstrap is in
+[CONTRIBUTING.md](CONTRIBUTING.md): GitHub CLI sign-in, username discovery,
+writable fork/upstream remotes and a local design branch. Use
+`npm run setup:workstation`; see [OWNER-SETUP.md](OWNER-SETUP.md) for advance
+owner configuration. Private Vercel project access is optional for this path.
+
 ## Provider connections
 
 The repo's `.mcp.json` is for Claude Code. For Codex CLI, configure the same
@@ -38,7 +44,7 @@ depends on the client/account. See
 and [MCP.md](MCP.md) for the provider-specific access checks and vendor links.
 Do not reuse another teammate's config or tokens.
 
-Ask the agent to read the shared setup documents, verify all three provider
-connections with read-only calls, and report what works versus missing access
-without showing secret values. The production boundary and review/release
+Ask the agent to read the shared setup documents, verify needed design
+connections and any authorized Vercel tools with read-only calls, and report
+what works versus missing access without showing secret values. The production boundary and review/release
 requirements in [AGENTS.md](AGENTS.md) apply here too.

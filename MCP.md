@@ -9,11 +9,19 @@ repo; Jonas still reviews the project/server trust prompts and completes each
 provider's OAuth login using his own account. Invitations and authorization
 are per person and are not supplied by cloning.
 
+**Vercel access is optional for contribution setup.** A public GitHub fork/PR
+does not grant private Vercel project permissions, and no paid team seat is
+required for the contribution path. Use [CONTRIBUTING.md](CONTRIBUTING.md) for
+GitHub authentication/remotes and [OWNER-SETUP.md](OWNER-SETUP.md) for beta
+deployment preparation. Do not treat a missing private Vercel connection as
+a local design blocker or borrow the owner's credentials. The Vercel endpoint
+remains available for teammates who already have the appropriate permissions.
+
 | Server | Endpoint | Used for |
 | --- | --- | --- |
 | Figma | `https://mcp.figma.com/mcp` | Read the shared design file, frames, components, assets and design context |
 | Webflow | `https://mcp.webflow.com/mcp` | Inspect/edit public beta pages, styles and CMS |
-| Vercel | `https://mcp.vercel.com` | Inspect portal projects, beta deployments and logs |
+| Vercel | `https://mcp.vercel.com` | Optional private project/deployment tools for an authorized account |
 
 The standard Webflow MCP endpoint can edit the BLBD beta site. Webflow's
 separate experimental **Beta MCP server** is not the BLBD beta environment
@@ -22,7 +30,9 @@ and is not required for onboarding.
 ## Claude Code: desktop Code tab or terminal
 
 Open a **local Code session** in the cloned repo, or run `claude` in its root.
-Use `/mcp` to check all three servers and authenticate any that request login.
+Use `/mcp` to inspect all three definitions and authenticate the services you
+need. Skip/disable the private Vercel connection in your local client settings
+if unnecessary; do not remove the team's shared definition or purchase access.
 Restart the session after changing configuration. In a terminal with the
 Claude Code CLI installed, `claude mcp list` also diagnoses configuration.
 
@@ -67,10 +77,12 @@ Ask Claude to report the result of a read-only check for each provider:
 2. **Webflow:** call `webflow_guide_tool` first, discover the available tools,
    then list/read site `693b4fc98a599c12cbf30e36` and its pages. Confirm it is
    beta before any subsequent edit. Tool names and prefixes vary by connection.
-3. **Vercel:** read team `illi1s-projects`, project `blbd`, and the latest
+3. **Vercel (only if authorized):** read team `illi1s-projects`, project `blbd`, and the latest
    **Preview / `feat/admin-portal`** deployment. Check the branch, commit,
    ready state and URL. Public documentation search alone does not prove
    authenticated access to the team's project. Don't export env values to chat.
+   Without that permission, inspect the GitHub Vercel check and shared beta URL;
+   continue contribution setup. Hook access does not add MCP permissions.
 
 The Webflow guide determines which operations need a live Designer/Bridge
 connection. Open the **beta** Designer and its MCP Bridge App when requested;

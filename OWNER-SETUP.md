@@ -25,10 +25,20 @@ for the default path: Jonas creates a fork/PR, the owner reviews and merges to
 beta. Local setup includes GitHub CLI authentication and fork/remotes setup.
 
 For direct pushes to upstream personal branches, invite Jonas as a **GitHub
-repository collaborator** once his username is available. This is not a
-Vercel team seat. Without that invitation, the fork path remains usable.
+repository collaborator**. In GitHub's repo **Settings → Collaborators → Add
+people**, use his GitHub username or email and have him accept the invitation.
+This can be prepared before workstation setup even if the owner does not yet
+know his username. Claude discovers the signed-in account and checks upstream
+write permission; it uses direct branches if granted and a fork otherwise.
+This is not a Vercel team seat. Without that invitation, the fork path remains usable.
+[GitHub's collaborator invitation guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/repository-access-and-collaboration/inviting-collaborators-to-a-personal-repository)
+confirms email invitations are supported.
 Fork preview deployments can require Vercel owner approval; do not promise
 that a hook or public repo removes all provider authorization gates.
+
+For shared-beta review, use a normal owner-created merge of the reviewed PR.
+Keep Jonas's original author credit; do not amend/rewrite his commits with the
+owner's email or add empty commits as the routine contribution procedure.
 
 Keep Production tracking `main`. Review beta changes before merging; a merge
 to `main` is a production release, not a design submission.
@@ -117,6 +127,39 @@ does not guarantee a bypass of plan or authorization rules.
 - Access to the shared beta review URL if protected. Use Vercel's **Share**
   controls for an external reviewer rather than purchasing a developer seat
   or disabling protection. Preview sharing is separate from private project/MCP access.
+
+For **Anyone with the link**, Hobby permits one shareable link total per
+account. Prefer sharing the stable beta review surface; check for an existing
+link before creating another. Individual external-reviewer invitations have
+their own limit of one collaborator at a time. These are viewing permissions,
+not deployment or private project administration rights.
+[Shareable link limits](https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/sharable-links),
+[external preview invitations](https://vercel.com/docs/deployments/sharing-deployments).
+
+## Other approaches considered
+
+- **GitHub push webhook directly to a Deploy Hook:** the hook rebuilds its
+  fixed branch and does not select a branch from the webhook payload. An
+  unfiltered push webhook can rebuild beta after unrelated branch pushes.
+  The checked-in Actions workflow supplies explicit repository/branch guards.
+- **GitHub Actions + Vercel CLI:** Vercel documents `vercel pull`, `vercel build`
+  and `vercel deploy --prebuilt` with `VERCEL_TOKEN`, `VERCEL_ORG_ID` and
+  `VERCEL_PROJECT_ID` in Actions secrets. This is a valid future CI/CD option,
+  not necessary for the working public-repo pipeline. If adopted, pull the
+  intended branch's isolated beta env explicitly and handle resulting URLs/
+  aliases; CLI deployments don't reproduce all native branch-link behavior.
+  Do not disconnect the shared Git integration or disable all automatic
+  deployments to implement a beta-only change: that also affects the existing
+  production release path. Plan the replacement before switching triggers.
+- **Making only beta public:** GitHub visibility applies to a repository,
+  not individual branches. This repo is already public, so no visibility
+  change is required.
+- **Owner-author rewriting / stripping Git metadata:** not part of bootstrap.
+  Preserve attribution and use normal reviewed merges or deliberately scoped
+  deployment credentials, rather than relying on author impersonation.
+
+Sources: [Vercel's Actions/CLI guide](https://vercel.com/kb/guide/how-can-i-use-github-actions-with-vercel),
+[GitHub visibility](https://docs.github.com/en/repositories/creating-and-managing-repositories/about-repositories).
 
 Official references: [Deploy Hooks](https://vercel.com/docs/deploy-hooks),
 [public-repo collaboration](https://vercel.com/docs/deployments/troubleshoot-project-collaboration),

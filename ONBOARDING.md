@@ -1,134 +1,170 @@
-# Onboarding — get your own Claude Code working on BLBD
+# Welcome, Jonas — set up your BLBD workstation
 
-For anyone in the BLBD group who wants to help with the site/portal and run
-their own Claude Code session against this repo. Fifteen minutes, no BLBD
-secrets required for most of it.
+Updated **2026-10-29**. Jonas will help design the BLBD beta site in **Figma**.
+Public-site designs are implemented in **Webflow beta**; the **member/admin
+portal stays in this repo on Vercel**. Start with local work and beta review.
 
-**The short version:** clone the repo, install a few tools, open Claude Code
-in the folder, paste one prompt. Claude Code auto-reads `CLAUDE.md` and
-`SKILLS.md` from the repo root on its own — you don't have to explain the
-project, just tell it to go read them.
+Cloning supplies project context and MCP definitions. It does not transfer
+another teammate's logins, secrets, account permissions, or Figma files.
 
-> Using a ChatGPT subscription instead of Claude Code? See
-> [`ONBOARDING-CODEX.md`](./ONBOARDING-CODEX.md) — same repo, same rules,
-> OpenAI's Codex CLI instead.
+## 1. Get your accounts and tools ready
 
----
+Ask the project owner for the access needed for your work:
 
-## 1 · Install the tools
+| Access | Why / target |
+| --- | --- |
+| Own GitHub account | Public repo; clone now and create a fork for PRs without an invitation. Upstream write access is optional |
+| Figma team/file invitation | Design source; ask for the shared file and exact frame/node links (not yet recorded in this repo) |
+| Webflow site edit access | BLBD BETA, site `693b4fc98a599c12cbf30e36` |
+| Shared beta review URL | Owner shares access if protected. Private Vercel dashboard/MCP access and a paid seat are not required for contributions |
+| Beta public Supabase URL + anon key | Real local member login/data; supplied through the team's secure channel |
+| Verified beta portal account | Separate signup from production; admin screens also require an actual admin grant |
 
-You need: **Node.js 20+**, **git**, and **Claude Code**. Everything else
-below is optional depending on what you'll actually touch.
+Jonas's one-time beta admin invitation is defined in migration `0003`.
+A maintainer checks whether it has been applied. Sign up with the invited
+mailbox on the [shared beta portal](https://blbd-git-feat-admin-portal-illi1s-projects.vercel.app/signup)
+and finish email verification there before logging in locally. The shared
+auth-mail hook does not accept localhost confirmation redirects; see
+[SETUP.md](SETUP.md). See [ADMIN-PORTAL.md](ADMIN-PORTAL.md) for invitation rules.
+Do not rerun migrations or bypass verification just to unblock design work.
 
-### macOS / Linux
+Install **Git**, **Node.js 22 LTS (22.13+) or 24 LTS**, **GitHub CLI**, and the
+**Claude desktop app**. The repo's `.nvmrc` selects Node 22 for version managers.
+Install commands and GitHub authentication are in [CONTRIBUTING.md](CONTRIBUTING.md).
+Use its **Code tab with a local session** for repository work. A regular
+Claude chat does not automatically read a cloned folder. A terminal
+Claude Code installation is an alternative; see
+[Anthropic's setup guide](https://code.claude.com/docs/en/setup) and
+[desktop guide](https://code.claude.com/docs/en/desktop).
 
-```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-# open a new terminal, then:
-nvm install --lts
-node -v && npm -v
+On Windows, install Git for Windows (including Git Bash) and Node.js 22 using
+their official installers. On macOS/Linux, use the official Node installer
+or your existing Node version manager (`nvm install 22`, `nvm use 22`).
+Open a fresh terminal after installing and check:
+
+```sh
+git --version
+node --version
+npm --version
 ```
 
-### Windows (PowerShell)
+The standalone Claude Code CLI and Vercel CLI are optional for the Code-tab
+path. Install the Vercel CLI only if using the explicit env-pull procedure in
+[SETUP.md](SETUP.md). Webflow CLI and Supabase CLI login are not required for
+design work; the repo provides the Supabase CLI for maintainer tasks.
 
-`curl`-piped installers aren't really a thing on Windows; use `winget`
-instead — it's the closest equivalent (already on Windows 10/11):
+## 2. Clone the current beta code
+
+```sh
+git clone --branch feat/admin-portal https://github.com/IllI/blbd.git
+cd blbd
+git status --short
+git branch --show-current
+npm run setup:workstation
+```
+
+The checked-out branch should be `feat/admin-portal`. On an existing clone,
+inspect local changes before switching or pulling; don't reset someone else's
+work. These docs currently live with the beta implementation on this branch;
+a plain default-branch clone may not include it yet.
+
+The repository root is this `blbd` folder containing `package.json`.
+Do not create a second Next.js project or reproduce the owner's worktree paths.
+
+## 3. Let Claude initialize the workstation and contribution workflow
+
+Open a **local Code session** in Claude Desktop and select the cloned repo,
+or run Claude Code in that folder. The checked-in `CLAUDE.md` and `AGENTS.md`
+direct the agent to execute [CONTRIBUTING.md](CONTRIBUTING.md), not merely
+describe the setup.
+
+The agent must inspect prerequisites, run `npm run setup:workstation`,
+guide your own GitHub browser authentication, discover your username,
+configure a writable fork/upstream remote, create/reuse a design branch,
+build, start the app and report the verified local URL. Existing files,
+credentials and changes must be preserved. Never paste tokens into chat.
+
+The bootstrap script installs locked dependencies and creates the sample env
+only if absent. GitHub authentication and remote setup are agent-guided steps
+after that command; a successful install alone is not complete contribution
+setup. [OWNER-SETUP.md](OWNER-SETUP.md) lists advance owner preparation.
+
+A regular Claude chat does not automatically gain local terminal access from
+a clone. Use the local Code session for installation. Other Markdown files
+are explicitly read per agent instructions; a name like `SKILLS.md` does not
+make a file automatically load. No email prompt is stored in the repo.
+
+## 4. Connect design MCPs; Vercel private access is optional
+
+Follow [MCP.md](MCP.md). The checked-in `.mcp.json` includes **Figma,
+Webflow and Vercel**. In Claude Code, open `/mcp` and authenticate the needed
+providers under your own account. Missing private Vercel permissions must not
+block local design or GitHub contribution. For ordinary desktop chat, use
+Connectors; confirm tools in the session that will implement your changes.
+
+The first checks read a Figma frame and list the beta Webflow site/pages.
+Inspect private Vercel deployment tools only if your account is authorized;
+otherwise use the GitHub check and shared beta review URL. Configuration alone
+is not proof of access.
+The owner must supply the Figma file/frame link before design inspection.
+
+## 5. Configure the local app and run it
+
+In the repo root, create `.env.local` **only if it doesn't already exist**:
+
+macOS/Linux:
+
+```sh
+cp .env.local.example .env.local
+```
+
+Windows PowerShell:
 
 ```powershell
-winget install OpenJS.NodeJS.LTS
-node -v; npm -v
+Copy-Item .env.local.example .env.local
 ```
 
-### Then, same on every OS
+The example contains dummy public Supabase values and blank secrets. It
+supports build/layout preparation; it cannot authenticate users or provide a
+working signed-in portal. For real local sessions, follow [SETUP.md](SETUP.md)
+to enter the **beta** public URL and anon key. Privileged admin operations need
+additional server credentials supplied case by case; use the shared beta
+portal for review if those aren't needed on your laptop.
 
-```bash
-npm install -g @anthropic-ai/claude-code
-git --version   # macOS/Linux: preinstalled or `xcode-select --install` / apt/brew.
-                 # Windows: winget install Git.Git
+```sh
+npm run dev
 ```
 
-**Optional, only if you'll need them:**
-- GitHub CLI (`gh`) — makes cloning/auth simpler if you don't already have SSH
-  keys set up: `winget install GitHub.cli` / `brew install gh`.
-- Vercel CLI — only needed if you're deploying or touching env vars:
-  `npm install -g vercel`.
-- ~~Webflow CLI~~ — **skip this.** We tried it early on; its login
-  (`webflow auth login`) needs a real interactive browser OAuth flow that
-  doesn't work well from inside a Claude Code session, and nothing in this
-  project's workflow actually depends on it anymore. Webflow Designer edits
-  now go through the **Webflow MCP connector** instead — see step 4.
+Open [http://localhost:3000/login](http://localhost:3000/login).
+The repo also includes `.claude/launch.json` for the desktop app's dev preview.
+Local email sending stays disabled; never copy the shared beta's enabled mail
+setting into a design workstation.
 
-## 2 · Clone the repo
+## 6. Verify, then start a design branch
 
-```bash
-git clone https://github.com/IllI/blbd.git
-cd blbd
-npm install
-cp .env.local.example .env.local
-npm run dev   # http://localhost:3000 — should just work with placeholder keys
+Run `npm run build`. Authenticated features need a separate real beta smoke
+check: member login, required portal screen, and verified-admin access when
+reviewing admin screens. Report missing credentials as missing access, not
+as successful end-to-end verification.
+
+Create a branch based on the current beta branch, for example:
+
+```sh
+git switch -c jonas/design-first-pass
 ```
 
-The repo ships with a placeholder `.env.local` baked in, so `npm run build`
-and `npm run dev` work with **zero real secrets**. You only need real keys
-for the specific things listed in step 3.
+Capture the Figma frame URL, intended surface and acceptance criteria using
+[DESIGN.md](DESIGN.md), then open a PR against `feat/admin-portal`.
+The contribution procedure in [CONTRIBUTING.md](CONTRIBUTING.md) configures
+your own fork when upstream write access isn't available. Owner-reviewed
+merges automatically build shared beta through the existing Vercel integration.
+Advance owner tasks are listed in [OWNER-SETUP.md](OWNER-SETUP.md).
+A personal Vercel preview is usable only after its exact branch has been
+configured and checked for beta isolation; see [ENVIRONMENTS.md](ENVIRONMENTS.md).
 
-## 3 · Credentials — who needs what
-
-Two tiers. Most people only need the first row.
-
-| You're doing... | You need | Get it from |
-|---|---|---|
-| Reading/editing code, `blbd.js`, Webflow embed HTML, docs | Nothing — placeholder `.env.local` is enough | already in the repo |
-| Testing real sign-up/login/goals locally against live data | Real Supabase URL + **anon** key | ask whoever's running tonight's setup — anon key is meant to be public-ish (RLS-protected), low risk to hand out |
-| **Anything that touches the database schema, RLS policies, or needs to bypass RLS** | Supabase **service_role** key | handed out case-by-case, in person — this key bypasses all row-level security, treat it like a root password |
-| Deploying to Vercel / changing env vars there | Vercel project access | ask to be added as a collaborator on the `blbd` Vercel project |
-| Editing the live Webflow Designer (pages, components, navbar) | Webflow MCP connector authorized + Designer/edit access on `blbd-2.webflow.io` | connect the MCP yourself (step 4); ask to be invited as a site collaborator |
-| Live Stripe/Resend keys | — | still placeholders project-wide as of now, nobody has these yet |
-
-Never commit a real `.env.local` — it's gitignored already, just don't force it.
-
-## 4 · Connect the Webflow MCP (only if you'll edit the Designer)
-
-Most "make this look different on the site" tasks don't need this at all —
-see `CLAUDE.md`'s note on runtime (`blbd.js`) vs. structural (Designer)
-changes. If you do need it: the Webflow MCP server is what actually lets
-Claude Code create pages, insert components, and publish, headlessly. It's a
-**per-person OAuth connection** — connect it yourself via `/mcp` in an
-interactive Claude Code session (or your claude.ai connector settings if
-you're using the web app), and separately ask to be added as a collaborator
-on the Webflow site itself. Without that Designer/edit invite, the MCP
-connection alone isn't enough — Webflow still checks your account's
-permissions on the site.
-
-## 5 · Open Claude Code and give it this first prompt
-
-```bash
-cd blbd
-claude
-```
-
-Then paste:
-
-> Read CLAUDE.md and SKILLS.md in this repo before doing anything else.
-> Then tell me: what's already set up vs. missing in my local `.env.local`,
-> whether the Webflow MCP is connected for this session, and what you'd
-> need from me before making a real change.
-
-That's it — Claude Code loads `CLAUDE.md` (the map: architecture, the
-two-Webflow-sites gotcha, infra, known bugs already paid for) and `SKILLS.md`
-(the recipes: ship a fix, cut an SDK version, edit a Webflow page, diagnose a
-bad redirect) automatically because they live at the repo root. The prompt
-above just makes it say out loud what it found, so you know it's oriented
-before it touches anything.
-
-## 6 · Where to go next
-
-- Want to fix something in `blbd.js` (the SDK that runs on the live site)?
-  → `SKILLS.md`, "Ship a fix to `blbd.js`".
-- Want to add/change a Webflow embed page? → `SKILLS.md`, "Add or update a
-  Webflow embed page".
-- Full setup from scratch (Supabase/Stripe/Resend/Vercel/DNS) — you
-  shouldn't need this, it's already done, but it's in `SETUP.md` if curious.
-- Confused why something works the way it does? → `CLAUDE.md`'s "Known
-  gotchas" and "Verification discipline" sections — save yourself from
-  re-discovering a bug that already got fixed once.
+Your workstation is ready when dependencies install, the local app starts,
+the build passes, Claude reports the correct environment/portal split, and
+your GitHub sign-in/remotes are configured, and needed design MCP reads succeed
+(or a specific outstanding invitation is recorded). Private Vercel access is
+not a workstation readiness requirement.
+Real member/admin design review additionally requires working beta login.

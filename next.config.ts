@@ -43,6 +43,24 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: '/blbd-auth.js',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Cache-Control', value: 'public, max-age=300, must-revalidate' },
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+        ],
+      },
+      {
+        // Public, version-pinned beta social controller. CORS is required for
+        // the registered Webflow script's cross-origin integrity check.
+        source: '/blbd-social.js',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Cache-Control', value: 'public, max-age=300, must-revalidate' },
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+        ],
+      },
+      {
         // Versioned SDK releases. Each /vN/blbd.js is a deliberately frozen
         // copy (see scripts/release-sdk.mjs) — once cut, its content never
         // changes, so it is safe to cache hard. A real Webflow production

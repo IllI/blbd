@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { OAuthButtons } from '@/components/auth/OAuthButtons';
 import { safeNext } from '@/lib/redirects';
+import { socialReadinessForUI } from '@/lib/social-auth';
 
 export const metadata: Metadata = { title: 'Log in' };
 
@@ -22,7 +23,7 @@ export default async function LoginPage({
 
       <LoginForm next={next} />
 
-      <OAuthButtons next={next} />
+      <OAuthButtons next={next} betaProviders={await socialReadinessForUI()} />
 
       <p className="auth-footer">
         <Link href="/forgot-password">Forgot your password?</Link>

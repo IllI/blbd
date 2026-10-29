@@ -2,7 +2,17 @@
   "name": "blbd-portal",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "^22.13.0 || ^24.0.0"
+  },
   "scripts": {
+    "setup:workstation": "node scripts/setup-workstation.mjs",
+    "check:workstation": "node scripts/setup-workstation.mjs --check",
+    "test:admin": "node scripts/test-admin-schema.mjs && node scripts/test-admin-logic.mjs && node scripts/test-auth-email.mjs && node scripts/test-mail-review.mjs",
+    "test:beta": "node scripts/verify-beta-environment.mjs",
+    "test:native": "node scripts/test-native-portal.mjs",
+    "test:social": "node scripts/test-social-auth.mjs",
+    "test:password": "node scripts/test-password-auth.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -17,9 +27,11 @@
     "react-dom": "19.1.0",
     "resend": "^6.18.1",
     "server-only": "^0.0.1",
+    "standardwebhooks": "^1.0.0",
     "stripe": "^22.4.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.11",
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -27,6 +39,8 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.22",
     "googleapis": "^174.0.1",
+    "linkedom": "^0.18.14",
+    "supabase": "^2.110.0",
     "typescript": "^5"
   }
 }

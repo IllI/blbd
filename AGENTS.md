@@ -1,42 +1,39 @@
-# Instructions for Codex / other AGENTS.md-reading agents
+# BLBD agent instructions
 
-This file exists so agents that auto-load `AGENTS.md` (Codex CLI and other
-tools that follow the same convention) get oriented the same way Claude Code
-does from `CLAUDE.md` in this repo. **Read `CLAUDE.md` and `SKILLS.md` in
-full before making any change.** Those two files are the source of truth for
-this project; this file is a bridge to them, not a replacement — if it drifts
-out of sync, trust `CLAUDE.md` over this one.
+Before making changes, read [CLAUDE.md](CLAUDE.md) and
+[SKILLS.md](SKILLS.md) in full, then [ENVIRONMENTS.md](ENVIRONMENTS.md).
+For a new laptop, also read [ONBOARDING.md](ONBOARDING.md),
+[MCP.md](MCP.md), [DESIGN.md](DESIGN.md), and [SETUP.md](SETUP.md).
+These checked-in files supply shared context; personal machine state and old
+session notes are not prerequisites.
 
-## The most important rules, in case you act before reading the links above
+## Current direction — 2026-10-29
 
-- **Webflow is the site.** blbd.life runs on Webflow (CMS + design, already
-  paid for). This repo is a free replacement for Memberstack — the auth/
-  database/payments layer that plugs into Webflow pages via one script tag
-  (`public/blbd.js`). Never build a competing landing page or duplicate
-  marketing content under `src/app/`.
-- **Environment roles were switched.** Production is **BLBD / blbd.life**,
-  site `69b9ae3792be3b49ef7eab96`. Beta is **BLBD BETA / blbd.webflow.io**,
-  site `693b4fc98a599c12cbf30e36`. Identify sites by ID, not their old names.
-  Production DB is `ihghsacsxvibtwoiyjag`; beta DB is
-  `hfmjvbjyectxiszutwen`. See `ADMIN-PORTAL.md` for beta deployment details.
-  The old `blbd-staging.vercel.app` alias still points to the production
-  deployment and must NOT be used as a beta admin test host.
-- **`public/blbd.js` versioning matters.** Bare `/blbd.js` is the mutable
-  "edge" copy that `blbd-2` currently tracks (fine for shipping fixes with
-  zero Webflow-side edit). `public/vN/blbd.js` is a frozen, cache-forever
-  snapshot cut with `node scripts/release-sdk.mjs vN` — it refuses to
-  overwrite an existing version; never hand-edit one after the fact.
-- **Confirm with the human before publishing Webflow changes**, running
-  `vercel --prod`, or pushing to `main` unprompted. Publishing a Webflow site
-  is whole-site by default, not scoped to the one edit just made — it can
-  ship other people's unpublished draft changes too.
-- **Run `npm run build` before every commit** (also full-typechecks) — it is
-  currently the only gate; there is no CI test suite.
-- **Security is enforced in Postgres (RLS + triggers)**, not just in the UI
-  or in `blbd.js` — see `supabase/README.md` before touching
-  `supabase/migrations/`.
+- Jonas is joining to design the BLBD beta site in **Figma**.
+- Public site/CMS implementation stays in **Webflow beta** for now.
+- The **member/admin portal stays in this Next.js repository on Vercel**.
+  Do not apply the superseded native Webflow portal migration plan.
+- Beta is Webflow `693b4fc98a599c12cbf30e36` (`blbd.webflow.io`),
+  Supabase `hfmjvbjyectxiszutwen`, Vercel project `blbd`, team
+  `illi1s-projects`, **Preview / `feat/admin-portal`**.
+  Personal preview branches need their own verified beta settings.
+- `blbd-staging.vercel.app` is a legacy production alias, not beta.
+  Confirm immutable IDs before remote writes; names can change.
+- [.mcp.json](.mcp.json) shares **Figma, Webflow and Vercel** endpoints.
+  Each teammate supplies their own OAuth and account permissions. Verify with
+  read-only calls; call `webflow_guide_tool` before other Webflow tools.
+- Inspect existing env before creating it. The tracked example is for
+  build/layout preparation; it does not provide working authentication.
+  Keep local mail off and secrets out of output/browser code/git.
+- Use `npm ci`; run `npm run build` before committing. Use the existing
+  tests appropriate to behavioral changes.
+- Production publication, production deploys, env/DNS/alias changes and
+  unprompted pushes/merges to `main` need explicit authorization.
+  Webflow publishing can ship all pending draft changes across the site.
+  Historical session approvals do not transfer to a new teammate.
+- Preserve frozen SDK releases and existing auth/SDK consumers. Security is
+  enforced by RLS/triggers and verified server authorization; read
+  [supabase/README.md](supabase/README.md) before migration work.
 
-Everything else — the infra map, exact recipes for shipping a fix, cutting an
-SDK version, editing a Webflow page via its MCP server, diagnosing a wrong
-redirect, and the list of mistakes already made once so you don't repeat
-them — lives in `CLAUDE.md` and `SKILLS.md`. Read them.
+For any conflict with the older native portal migration documentation,
+the October 29 direction in CLAUDE.md and ENVIRONMENTS.md takes precedence.

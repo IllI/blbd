@@ -1,5 +1,18 @@
 # BLBD administration — beta implementation
 
+## Current team direction (2026-10-29)
+
+The member/admin portal stays in **Next.js on Vercel**. Jonas will help design
+the beta experience in **Figma**; public-site work stays in Webflow beta.
+Start workstation setup with [ONBOARDING.md](ONBOARDING.md),
+[MCP.md](MCP.md), [DESIGN.md](DESIGN.md) and
+[ENVIRONMENTS.md](ENVIRONMENTS.md).
+The native Webflow portal migration below is historical and must not be
+continued. Preserve its existing published auth integrations. Provisioning
+and mail rollout procedures are maintainer operations, not onboarding steps;
+the beta infrastructure already exists. Never rerun the configuration script
+or enable sending to set up a design workstation.
+
 ## Environment boundary (confirmed 2026-10-21)
 
 | Environment | Webflow project | Immutable site ID | Public host |
@@ -219,10 +232,11 @@ than bypassing these protections. The composer uses `/api/admin/mail` instead.
 
 ## Local verification
 
-The native Webflow migration is tracked in [issue #7](https://github.com/IllI/blbd/issues/7).
-Its page IDs, component IDs, designer contracts and publication gates are in
-`webflow/portal-migration/README.md`. The four new pages are unpublished drafts;
-the existing React portal remains the working fallback.
+The superseded native Webflow migration was tracked in
+[issue #7](https://github.com/IllI/blbd/issues/7). Its page IDs, component IDs,
+designer contracts and verification history are archived in
+`webflow/portal-migration/README.md`. The four portal pages remain drafts;
+the React portal on Vercel is the intended member/admin surface.
 
 `BLBD_WEBFLOW_ADMIN_ORIGIN=https://blbd.webflow.io` opts **only the isolated
 beta branch Preview** into native Webflow bearer requests. No other Webflow

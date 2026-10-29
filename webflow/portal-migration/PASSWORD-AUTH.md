@@ -1,5 +1,11 @@
 # Native email/password auth — beta only
 
+**Context update (2026-10-29):** the member/admin portal stays on Vercel.
+This document records the existing beta Webflow auth entry integration, which
+must be preserved; it does not authorize a new portal migration or publish.
+See [../../ENVIRONMENTS.md](../../ENVIRONMENTS.md) and
+[../../DESIGN.md](../../DESIGN.md) for current onboarding/design direction.
+
 The October 26 beta release replaces the retired Webflow User Accounts
 submission handler on the existing login/signup forms.
 The social loader does not supply password behavior. Preserve the existing

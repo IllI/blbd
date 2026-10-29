@@ -1,7 +1,21 @@
 # Supabase schema notes
 
-`migrations/0001_init.sql` is the whole schema. Key decisions and how they
-differ from the original spec in `../../HANDOFF.md`:
+New workstation setup does **not** apply migrations or copy production data.
+See [../SETUP.md](../SETUP.md) and [../ENVIRONMENTS.md](../ENVIRONMENTS.md).
+Beta is `hfmjvbjyectxiszutwen`; production is `ihghsacsxvibtwoiyjag`.
+Use the repo-pinned `npx supabase` for approved database work; a new clone
+has no inherited project link. Verify the target ref before any remote write.
+
+Migrations: `0001_init.sql` defines the base member schema/RLS;
+`0002_admin_portal.sql` adds admin access and controlled mail operations;
+`0003_add_jonas_admin.sql` defines Jonas's additional one-time beta invitation.
+A maintainer checks which migrations are applied; cloning does not apply them.
+Verified signup is still required, and rerunning onboarding must not restore
+a revoked grant. See [../ADMIN-PORTAL.md](../ADMIN-PORTAL.md).
+
+The following base-schema decisions explain the implementation. The original
+handoff spec predates the current beta architecture and is not a prerequisite
+file outside this clone.
 
 ## RLS recursion avoided
 A policy on `profiles` that runs `SELECT ... FROM profiles` (as the original
@@ -46,8 +60,8 @@ against `auth.uid()`.
 ## Regenerating types
 After any schema change, keep `src/lib/supabase/database.types.ts` in sync:
 ```bash
-supabase gen types typescript --linked > src/lib/supabase/database.types.ts
+npx supabase gen types typescript --project-id hfmjvbjyectxiszutwen > src/lib/supabase/database.types.ts
 ```
+
 Row types **must** be `type` aliases (not `interface`) or Postgrest's generics
 degrade table types to `never`. The generator already emits type aliases.
-```

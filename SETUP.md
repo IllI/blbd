@@ -1,257 +1,142 @@
-# BLBD Portal — Setup & Deploy
+# BLBD workstation configuration and beta deployment
 
-Everything needed to take `blbd-portal/` from code to live at `app.blbd.life`.
-Ordered so each step unblocks the next. You have the Supabase and Vercel CLIs
-connected already — those steps use them.
+Updated **2026-10-29**. New teammates start with
+[ONBOARDING.md](ONBOARDING.md) and [MCP.md](MCP.md). This document configures
+the existing app; onboarding does not recreate infrastructure or deploy
+production. [ENVIRONMENTS.md](ENVIRONMENTS.md) defines the current targets.
 
-Accounts you'll need: **Supabase** (have it), **Vercel** (have it), **Stripe**
-(create if none), **Resend** (create). Everything is free tier.
+## Local build and layout work
 
----
+From the repo root on the beta branch, run `npm ci`. Copy
+[.env.local.example](.env.local.example) to `.env.local` if absent, then
+run `npm run dev`. See onboarding for PowerShell/macOS copy commands.
 
-> **Status (2026-07-30):** Step 1 is DONE. Org **BLBD**
-> (`tbhajxnvtmmosisaibuc`) and project **blbd**
-> (`ihghsacsxvibtwoiyjag`, East US) created; schema pushed and verified
-> (tables, RLS, tier-gating triggers, avatars bucket, realtime all confirmed).
-> Real Supabase keys are in `.env.local`; the DB password is in
-> `.supabase-db-password.txt` (both gitignored). Remaining: Auth URL config
-> (step 1.2, needed at deploy), Stripe, Resend, Vercel, DNS, webhook.
+The example uses a dummy Supabase host/key, blank service credentials, beta
+guard settings, localhost app URL and disabled mail/OAuth flags. Those public
+dummy values satisfy configuration shape for build/layout preparation;
+they do not connect to the beta database. Protected pages require real login.
+The service-status page's badges are not a remote connectivity test.
 
-## 1 · Supabase project + schema
+No real env file, `.vercel` link, Supabase link metadata, API tokens or
+personal Claude settings are shipped by cloning. Do not copy these from a
+different workstation. Never print an env file or secret values in chat/logs.
 
-The migration lives at `supabase/migrations/0001_init.sql` and is idempotent
-enough to run once cleanly.
+## Real local member and admin review
 
-### Option A — hosted project via CLI (recommended)
+Obtain the beta **public** URL and anon key through the team's secure channel.
+Set these in your gitignored `.env.local`:
 
-```bash
-cd blbd-portal
-# Create the project (pick your org; save the DB password it prints):
-supabase projects create blbd --org-id <your-org-id> --region us-east-1 --db-password '<strong-password>'
-# Link this folder to it:
-supabase link --project-ref <project-ref>
-# Push the schema:
-supabase db push
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=https://hfmjvbjyectxiszutwen.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=REPLACE_WITH_BETA_PUBLIC_ANON_KEY
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_URL=https://blbd.webflow.io
+BLBD_ADMIN_ENVIRONMENT=beta
+BLBD_BETA_SUPABASE_PROJECT_REF=hfmjvbjyectxiszutwen
+BLBD_ADMIN_MAIL_ENABLED=false
 ```
 
-If `db push` reports it wants a migration under `supabase/migrations/`, it's
-already there (`0001_init.sql`) — it will apply it.
+Keep `RESEND_API_KEY`, `BLBD_MAIL_POSTAL_ADDRESS`,
+`SUPABASE_AUTH_EMAIL_HOOK_SECRET`, Stripe keys and
+`BLBD_WEBFLOW_ADMIN_ORIGIN` blank for ordinary local design work.
+Keep provider flags false until the provider is actually configured.
+Restart dev/rebuild after changing `NEXT_PUBLIC_*` values.
 
-### Option B — paste in the dashboard
+Create and verify your separate **beta** account on the
+[shared beta portal](https://blbd-git-feat-admin-portal-illi1s-projects.vercel.app/signup),
+then use its email/password to sign in locally. Do recovery/verification on
+that shared host too. The signed auth-mail hook in `src/lib/auth-email.ts`
+accepts only its configured HTTPS app origin; adding localhost to Supabase's
+redirect allowlist alone does not enable local signup/recovery mail. Local
+mail-hook support would require a separate reviewed change, not disabling
+the redirect guard. Do not change production redirect settings.
+Admin pages additionally require a verified current grant; provider/team
+invitations do not grant app access.
 
-Open the project → SQL Editor → paste all of `supabase/migrations/0001_init.sql`
-→ Run.
+Regular member functionality uses the anon key with the signed-in user's
+session. Privileged admin/account/mail routes may also need the **beta
+server-only** `SUPABASE_SERVICE_ROLE_KEY`, supplied separately if local admin
+work needs it. It bypasses RLS; never place it in a `NEXT_PUBLIC_*` variable.
+Prefer reviewing on the shared beta portal when privileged local access is
+unnecessary. Local sending remains off; don't add mail keys to make a button
+look enabled.
 
-### Then, in the dashboard
+## Optional Vercel CLI env retrieval
 
-1. **Authentication → Providers → Email**: enabled. Turn **Confirm email** on.
-2. **Authentication → URL Configuration**:
-   - Site URL: `https://app.blbd.life`
-   - Redirect URLs: add `https://app.blbd.life/auth/callback` and
-     `http://localhost:3000/auth/callback` (for local dev).
-3. **(Optional) Google OAuth**: Providers → Google, add client ID/secret, then
-   set `NEXT_PUBLIC_ENABLE_GOOGLE_OAUTH=true` in env. Add
-   `https://<project>.supabase.co/auth/v1/callback` as an authorized redirect
-   in Google Cloud Console.
-4. **Project Settings → API**: copy the **Project URL**, **anon key**, and
-   **service_role key** for step 4.
+Use only with project permission and a deliberate need for local env access.
+MCP OAuth and CLI login are separate. Install the CLI if needed
+(`npm install -g vercel`), then:
 
-> Verify: **Authentication → Users → Add user** (with a password). A row should
-> appear in **Table Editor → profiles** automatically. If not, the
-> `on_auth_user_created` trigger didn't apply — re-run the migration.
-
----
-
-## 1c · Social login (Google + Facebook)
-
-The buttons are built and will appear automatically once each provider is
-enabled **and** its flag is set. Both steps are required — a button for an
-unconfigured provider fails with an opaque "provider is not enabled" error,
-which is why they're flag-gated.
-
-> The flags are `NEXT_PUBLIC_*`, so they are **inlined at build time**.
-> Changing them requires a **redeploy**, not just an env update.
-
-### Google
-1. [Google Cloud Console](https://console.cloud.google.com/apis/credentials) →
-   **Create Credentials → OAuth client ID → Web application**.
-2. Authorized redirect URI:
-   `https://ihghsacsxvibtwoiyjag.supabase.co/auth/v1/callback`
-3. Copy the Client ID + Secret.
-4. Supabase → **Authentication → Providers → Google** → enable, paste both, save.
-5. Then:
-   ```bash
-   printf '%s' 'true' | vercel env add NEXT_PUBLIC_ENABLE_GOOGLE_OAUTH production --force
-   vercel --prod
-   ```
-
-### Facebook
-1. [Meta for Developers](https://developers.facebook.com/apps) → **Create App**
-   → type **Consumer** → add the **Facebook Login** product.
-2. Facebook Login → Settings → Valid OAuth Redirect URIs:
-   `https://ihghsacsxvibtwoiyjag.supabase.co/auth/v1/callback`
-3. Settings → Basic: copy **App ID** + **App Secret**.
-4. Supabase → **Authentication → Providers → Facebook** → enable, paste both, save.
-5. Then:
-   ```bash
-   printf '%s' 'true' | vercel env add NEXT_PUBLIC_ENABLE_FACEBOOK_OAUTH production --force
-   vercel --prod
-   ```
-
-> Facebook requires the app to be switched from *Development* to *Live* mode
-> before anyone outside your test users can sign in, and it requires a valid
-> Privacy Policy URL — `https://blbd.life/privacy-policy` already exists.
-
----
-
-## 2 · Stripe products
-
-1. Create a Stripe account (test mode is fine to start).
-2. **Products** → create three, each with a **recurring monthly** price:
-   - Supporter — $5/mo
-   - Member — $15/mo
-   - Founding — $50/mo
-3. Copy each **price ID** (`price_…`) for step 4.
-4. **Developers → API keys**: copy the secret (`sk_test_…`) and publishable
-   (`pk_test_…`) keys.
-5. The webhook secret comes in step 6 (needs the deployed URL).
-
----
-
-## 3 · Resend
-
-1. Create a Resend account.
-2. **Domains → Add domain** → `blbd.life`. Resend shows DNS records (SPF/DKIM,
-   a `resend._domainkey` CNAME, and an MX for the bounce subdomain). Add them
-   in GoDaddy **alongside** the existing Google MX records — don't replace
-   anything. Wait for "Verified".
-3. **API Keys → Create** → copy `re_…`.
-
-> Until the domain verifies, set `RESEND_FROM_EMAIL="BLBD <onboarding@resend.dev>"`
-> to test sends; switch to `contact@blbd.life` once verified.
-
----
-
-## 4 · Environment variables
-
-Copy `.env.local.example` → `.env.local` and fill in everything from steps 1–3.
-The repo already has a placeholder `.env.local` (so builds work) — overwrite it.
-
-`.env.local` is gitignored. For Vercel, the same keys go in
-**Project → Settings → Environment Variables** (step 5).
-
----
-
-## 5 · Deploy to Vercel + DNS
-
-```bash
-cd blbd-portal
-vercel link          # link to a new or existing project
-vercel env pull      # optional: sanity-check what's set
-# Add each var (repeat for production; --sensitive for secrets):
-vercel env add NEXT_PUBLIC_SUPABASE_URL production
-# …repeat for every key in .env.local.example…
-vercel --prod        # first production deploy
+```sh
+vercel login
+vercel link --project blbd --scope illi1s-projects
+vercel env pull .env.beta.local --environment=preview --git-branch=feat/admin-portal --scope illi1s-projects
 ```
 
-**DNS (GoDaddy)** — add the subdomain CNAME. Do this early; propagation can
-take a while:
+Verify the link selects the existing project/team, not a new project.
+The explicit Preview branch matters: plain `vercel env pull` defaults to
+Development, which is not the isolated beta configuration.
 
-```
-Type   Name   Value                  TTL
-CNAME  app    cname.vercel-dns.com    600
-```
+Pull to the separate gitignored `.env.beta.local` so you don't overwrite
+local settings. Inspect it privately and copy only necessary beta values to
+`.env.local`; it is not automatically loaded by Next.js as a beta environment.
+Keep localhost as `NEXT_PUBLIC_APP_URL`, mail disabled, mail secrets blank,
+and native admin transport blank. The shared branch may have mail enabled.
+Sensitive variables may not be exported; obtain missing required beta secrets
+through the approved secure channel, not from Production.
+See [Vercel env CLI reference](https://vercel.com/docs/cli/env).
 
-Then in Vercel: **Project → Settings → Domains → Add** `app.blbd.life`. Vercel
-issues the SSL cert once DNS resolves. Leave the root `blbd.life` records
-pointing at Webflow — untouched.
+## Maintainer: feature-branch previews
 
----
+A personal branch based on `feat/admin-portal` gets code, not that branch's
+Vercel env overrides. Before functional preview review:
 
-## 6 · Stripe webhook
+1. Confirm Vercel `blbd` / `illi1s-projects`, the exact Git branch, and Preview.
+2. Configure that branch's beta Supabase URL/anon key, required server secrets
+   and guards. Confirm all refer to `hfmjvbjyectxiszutwen`.
+3. Set its actual portal URL as `NEXT_PUBLIC_APP_URL` and
+   `https://blbd.webflow.io` as `NEXT_PUBLIC_SITE_URL`.
+   Check the corresponding **beta** auth redirects. The shared signed-mail hook
+   also enforces its configured origin: new preview signup/recovery needs a
+   separately reviewed auth-mail arrangement, not just an added redirect URL.
+   Use an already verified beta account for preview password-login review.
+4. Keep sending disabled on new branches and unconfigured provider flags off.
+   Do not copy live send switches, production keys, contacts or auth-hook
+   settings just to get a preview.
+5. Deploy the preview, then verify the returned branch, commit, URL, isolation,
+   login and required role checks before sharing it for functional review.
 
-Once `app.blbd.life` is live:
+Do not run `scripts/configure-beta-preview.mjs` as laptop bootstrap.
+It changes the shared `feat/admin-portal` environment, resets flags and uses
+owner-specific CLI paths. It is not a portable new-branch provisioning script.
 
-1. Stripe **Developers → Webhooks → Add endpoint**:
-   - URL: `https://app.blbd.life/api/stripe/webhook`
-   - Events: `checkout.session.completed`, `customer.subscription.created`,
-     `customer.subscription.updated`, `customer.subscription.deleted`,
-     `invoice.payment_succeeded`, `invoice.payment_failed`.
-2. Copy the **Signing secret** (`whsec_…`) → set `STRIPE_WEBHOOK_SECRET` in
-   Vercel → redeploy.
+Vercel env changes affect a **new deployment**, not an already running
+deployment. Rebuild/redeploy the intended Preview after changing them.
+Do not repoint production aliases or use `vercel --prod` for beta review.
 
-**Local testing:**
-```bash
-stripe listen --forward-to localhost:3000/api/stripe/webhook
-# use the whsec_ it prints as STRIPE_WEBHOOK_SECRET in .env.local
-```
+## Maintainer: database and integrations
 
----
+Supabase projects and migrations already exist. Design onboarding requires no
+database push, project creation, production data copy, or forced role changes.
+For approved schema work, read [supabase/README.md](supabase/README.md), use
+the repo-pinned `npx supabase`, explicitly link/verify the **beta** project and
+review the migration dry run before applying anything.
 
-## 7 · Webflow integration
+[ADMIN-PORTAL.md](ADMIN-PORTAL.md) records beta admin invitations, auth-mail
+hooks and mail controls. Check current beta configuration rather than assuming
+Stripe/Resend are all placeholders. Production rollout, billing activation,
+email provider changes, DNS, OAuth setup and Webflow publication are separate
+tasks with their own review.
 
-All snippets are in `webflow/`:
+## Verification
 
-- `comment-embed.html` → Blog Post **CMS template**, one Embed element at the
-  bottom of the post body.
-- `newsletter-intercept.html` → **Project Settings → Custom Code → Footer Code**.
-- `navbar-links.md` → manual Designer link changes (login/join/CTA buttons).
+- `npm run build` — compile/type-check using local configuration.
+- `npm run test:admin` — local schema/admin/auth-mail logic, no real mail.
+- `npm run test:native`, `npm run test:social`, `npm run test:password` —
+  existing Webflow integration regressions when those surfaces change.
+- Browser smoke checks with a real beta member/admin account for the screens
+  being designed, including mobile widths and error/empty/loading states.
 
-Publish the Webflow site after adding these.
-
----
-
-## 7b · Seed blog drafts into Webflow CMS (optional)
-
-Three drafts are extracted from the content doc in `scripts/blog-posts.json`.
-The importer creates them as **drafts** (never auto-publishes).
-
-```bash
-# Webflow → Site Settings → Apps & Integrations → API access → new token
-# (Content: read + write). Then:
-export WEBFLOW_API_TOKEN=...   # PowerShell: $env:WEBFLOW_API_TOKEN='...'
-
-node scripts/seed-webflow-blog.mjs --discover   # confirm site + field mapping
-node scripts/seed-webflow-blog.mjs --dry-run    # preview, creates nothing
-node scripts/seed-webflow-blog.mjs --seed       # create drafts
-```
-
-Review and publish the drafts in the Webflow Designer. If `--discover` shows the
-body/summary fields weren't detected, tell me the field slugs and I'll adjust
-the mapping in `scripts/seed-webflow-blog.mjs`.
-
----
-
-## 8 · Make Dan an admin
-
-After Dan signs up through the portal, flip the flag (service-role only):
-
-```sql
-update public.profiles set is_admin = true
-where id = (select id from auth.users where email = 'contact@blbd.life');
-```
-
-The **Newsletter** nav item then appears for that account.
-
----
-
-## Local development
-
-```bash
-cd blbd-portal
-npm install
-npm run dev      # http://localhost:3000
-```
-
-With a real `.env.local` pointing at the hosted Supabase project, everything
-works locally except Stripe webhooks (use `stripe listen`, step 6).
-
-## Verification checklist
-
-- [ ] Sign up → confirmation email → land on dashboard
-- [ ] Edit profile, upload avatar, view public profile at `/profile/<id>`
-- [ ] Add living + dying goals, reorder, mark complete (free = 2/list)
-- [ ] Upgrade with test card `4242 4242 4242 4242` → tier updates after webhook
-- [ ] With a paid tier: comment on `/embed/comments?slug=test`, reply, edit, delete
-- [ ] Newsletter subscribe → confirm email → admin sends a test
-- [ ] Webflow navbar login/join land on the portal
+`npm run test:beta` is a **remote integration run**, creates temporary beta
+fixtures and requires additional authenticated access. It is not a default
+onboarding step. Sink-mail flags still send mail; don't run them for design QA.

@@ -1,311 +1,138 @@
-# BLBD — context for Claude Code sessions in this repo
+# BLBD — context for Claude sessions
 
-Read this before touching anything. It's dense on purpose — every line here
-was learned the hard way in an earlier session. **See also `SKILLS.md`** for
-step-by-step procedures (shipping a fix, cutting a release, adding a Webflow
-page). This file is the *map*; that one is the *recipes*.
+Current direction: **2026-10-29**. Read this before changing code, configuring
+a workstation, or using remote tools.
 
-## What this actually is
+## Start every fresh workstation/session here
 
-**Webflow is the site.** The founder pays for Webflow's CMS/design; it drives
-all public content (home, about, blog, join). This repo is **not** a second
-website — it's a free, self-hosted **replacement for Memberstack**: the
-auth/database/payments layer that plugs *into* Webflow pages via one script
-tag. Never build a competing landing page or duplicate marketing content
-here. If a task smells like "design a page," it belongs in Webflow, not in
-`src/app/`.
+Read [AGENTS.md](AGENTS.md), [SKILLS.md](SKILLS.md),
+[ENVIRONMENTS.md](ENVIRONMENTS.md), [ONBOARDING.md](ONBOARDING.md),
+[MCP.md](MCP.md), [DESIGN.md](DESIGN.md), and [SETUP.md](SETUP.md).
+Load these files explicitly; do not assume arbitrary Markdown is auto-loaded.
+Instructions must work from a fresh clone, without the owner's machine,
+personal memory, existing CLIs, credentials, or previous session approvals.
 
-Full architecture diagram + reasoning: `ARCHITECTURE.md`.
+For Jonas's onboarding, inspect the OS, repo root, branch and available tools.
+Install locked dependencies, create the example env only if absent, verify
+MCPs with read-only requests, and report missing invitations/configuration
+without displaying secrets. Start and check the local app; distinguish
+placeholder layout/build checks from authenticated beta verification.
 
-## The two Webflow sites — do not confuse them
+## Product boundary
 
-**Current environment map, confirmed by the user 2026-10-21:** production is
-**BLBD / blbd.life**, immutable site ID `69b9ae3792be3b49ef7eab96`; beta is
-**BLBD BETA / blbd.webflow.io**, site ID `693b4fc98a599c12cbf30e36`. The
-names/roles were swapped after the original notes below. Beta database
-`hfmjvbjyectxiszutwen` is isolated from production `ihghsacsxvibtwoiyjag`.
-The admin feature uses Vercel **Preview / feat/admin-portal**, configured at
-`blbd-git-feat-admin-portal-illi1s-projects.vercel.app`. Do not use the old
-`blbd-staging.vercel.app` alias: the audit found it points to the same old
-deployment as `app.blbd.life`. See `ADMIN-PORTAL.md` for the current rollout.
+Jonas is joining BLBD to help design the beta site in **Figma**. Public website
+and CMS work currently stays in **Webflow**. The **member/admin portal stays
+in Next.js on Vercel**. Design portal screens under `src/app/` and
+`src/components/`; do not duplicate public marketing pages there.
 
-| | `blbd.webflow.io` | `blbd-2.webflow.io` |
-| --- | --- | --- |
-| Status | **Beta/development, now BLBD BETA** | **Production, now BLBD** |
-| Custom code | **Blocked** — no site plan, Webflow gates Custom Code behind a paid plan | Allowed (has a plan) |
-| Auth forms | Native Webflow User Accounts (`#wf-log-in-email` etc.), page `/log-in` | Was Memberstack (`data-ms-form`, `data-ms-member`), page `/login` (no hyphen) |
-| Use it for | Beta/development; no production edits | Public production; do not publish without approval |
+Older instructions saying every page design belongs in Webflow, that React
+portal pages are only a test harness, or that members never change domains
+are superseded. The native Webflow portal drafts remain as historical
+artifacts; do not extend or publish that migration. Preserve deployed SDK and
+native auth behavior until a separately reviewed integration change replaces it.
 
-`blbd.js` supports **three** form conventions simultaneously (native Webflow
-IDs, Memberstack `data-ms-*` attributes, and a generic `data-blbd-form` /
-`data-blbd-input` contract for hand-built forms) specifically so it works on
-whichever site ends up being real. Don't assume one and delete support for
-the others.
+[ENVIRONMENTS.md](ENVIRONMENTS.md) is the canonical environment map:
+beta Webflow `693b4fc98a599c12cbf30e36` at `blbd.webflow.io`;
+beta Supabase `hfmjvbjyectxiszutwen`; Vercel `blbd` /
+`illi1s-projects`, **Preview / `feat/admin-portal`**.
+The current beta portal is
+`https://blbd-git-feat-admin-portal-illi1s-projects.vercel.app`.
+`blbd-staging.vercel.app` is a legacy production alias, never a beta target.
 
-## Infrastructure map
+Beta settings are branch-specific. Before using a new feature-branch preview,
+verify its own database/env settings; Preview does not automatically mean beta.
+Production uses Webflow `69b9ae3792be3b49ef7eab96` / `blbd.life`,
+Supabase `ihghsacsxvibtwoiyjag`, and the Vercel Production target.
 
-| Piece | Where | Notes |
-| --- | --- | --- |
-| Code | `github.com/IllI/blbd` (public repo, `main` branch) | `gh` CLI authenticated as user `IllI` |
-| Hosting | Vercel project `blbd` (team `illi1s-projects`) | Auto-deploys on push to `main` — see below |
-| "Production" test URL | `blbd-life.vercel.app` | Manual alias, does **not** auto-follow new deploys |
-| "Staging" test URL | `blbd-staging.vercel.app` | Same caveat |
-| Real prod domain | `app.blbd.life` | Added to Vercel, DNS record not yet added at GoDaddy — once it is, this domain *will* auto-track every push forever, no more manual aliasing |
-| Database/Auth | Supabase project `blbd`, ref `ihghsacsxvibtwoiyjag`, org "BLBD" | Created via `supabase` CLI this session |
-| Payments | Stripe | **Not set up yet** — placeholder keys in `.env.local` / Vercel env |
-| Email | Resend | **Not set up yet** — placeholder keys |
-| Blog content | Webflow CMS, pulled via `lib/webflow.ts` | `WEBFLOW_API_TOKEN` scoped to CMS read/write + Sites read |
+## Connections and credentials
 
-### The git/Vercel pipeline — how a code change actually ships
+[.mcp.json](.mcp.json) supplies the official remote **Figma, Webflow and Vercel**
+server definitions. OAuth and team/site/file invitations are per person.
+Read [MCP.md](MCP.md); don't mistake a configured server or public docs search
+for authenticated access. Use the local Code session/CLI for repo work;
+ordinary desktop chat needs explicit files and its own working connectors.
 
-```
-edit code → npm run build (catches errors) → git add/commit → git push
-  → Vercel auto-builds (~40-90s) → new immutable deployment URL
-  → manually re-alias blbd-life.vercel.app + blbd-staging.vercel.app to it
-    (skip this step entirely once app.blbd.life DNS is live)
-```
+For Webflow, discover the current tools and call `webflow_guide_tool` first.
+Use its requirements for headless Data operations versus Designer/Bridge
+operations; don't assume a live Designer is always unnecessary. Confirm the
+immutable beta site ID before each mutation. On expired OAuth, have Jonas
+reconnect interactively, without sharing tokens/codes.
 
-There is **no CI test suite** — `npm run build` (which also full-typechecks)
-is the only gate before pushing. Run it before every commit.
+Cloning does not create `.env.local`. Copy the tracked example only if absent.
+Dummy values support preparation, not real auth/data. Use beta values for
+functional QA. Keep service-role, Webflow API, Stripe and Resend secrets on the
+server, never in Figma, Webflow browser code, commits, logs or chat.
+Do not transfer the owner's `.vercel`, Supabase link metadata, or personal
+Claude settings into another workstation. MCP login and CLI login are separate.
 
-## `blbd.js` — the one file that matters most
+## Development and review
 
-`public/blbd.js`. Vanilla JS, no build step, no dependencies, ~1700 lines.
-Runs first-party on whatever Webflow site loads it (this is deliberate — see
-"Why first-party" in `ARCHITECTURE.md`; it's why there's no third-party-
-cookie problem and no iframe for comments).
+- Use `npm ci` and the lockfile. Node.js 22 LTS is the recommended baseline.
+- Run `npm run build` before a commit. Run the appropriate existing tests
+  for behavioral changes; there are local admin, native, social and password
+  test commands in `package.json`. Don't claim there is no test suite.
+- Start a personal branch from `feat/admin-portal` and target that beta branch
+  for review until the beta changes are merged.
+- Use Figma frame/node context, existing components, CSS tokens and responsive
+  states. See [DESIGN.md](DESIGN.md); don't blindly paste generated React into
+  Webflow or create a replacement app.
+- Local setup does not run remote migrations, create projects, grant roles,
+  change shared env, send mail, publish sites, or deploy production.
+- Obtain explicit release authorization before Webflow publication (whole-site
+  changes may include other teammates' drafts), `vercel --prod`, production
+  env/DNS/alias changes, or unprompted pushes/merges to `main`.
+  Approval from an older session is not a standing release permission.
 
-**Versioning — do not skip this when shipping to a real site:**
-- `public/blbd.js` (served at bare `/blbd.js`) is the **edge** copy — whatever
-  is on the branch right now, 5-minute cache. Fine for our own testing.
-- `public/vN/blbd.js` (served at `/vN/blbd.js`, e.g. `/v3/blbd.js`) is a
-  **frozen** snapshot, cached forever. Cut with
-  `node scripts/release-sdk.mjs vN` — it refuses to overwrite an existing
-  version. A real Webflow footer-code install should point at a version, not
-  bare `/blbd.js`.
-- `blbd-2.webflow.io`'s footer script currently points at the **bare**
-  `/blbd.js` — meaning every fix that lands on `main` and deploys reaches it
-  automatically, with **zero Webflow-side edit**. This has repeatedly been
-  the fastest way to fix something the user hit live, without asking them to
-  touch the Designer at all. Keep exploiting this while it's true; don't
-  casually switch that site to a pinned version without a reason.
+## Implementation map and invariants
 
-**Config is read from the `<script>` tag's `data-*` attributes**, not env
-vars — this file ships to a browser, it has no access to `.env`. See the
-`CFG` object at the top of the file for every knob (`data-supabase-url`,
-`data-app-url`, `data-login-path`, `data-signup-path`, `data-members-path`,
-`data-after-login`, etc.). When adding a new configurable behavior, add a
-`CFG` entry with a sensible default — **and grep the whole file for any
-hardcoded path literal that should have used it instead** (this has been a
-real, shipped bug twice: `/log-in` hardcoded in two `href=` strings instead
-of `CFG.loginPath`).
+- `src/app/(portal)/` and `src/app/admin/` contain Vercel portal screens.
+  Inspect the actual route tree before editing.
+- `src/app/page.tsx` is a service status/install page; signed-in users go to
+  `/dashboard`. It is not the public marketing homepage. Its status badges
+  reflect config presence, not successful remote service checks.
+- `src/app/globals.css`, `src/components/` — shared design and UI.
+- `src/app/api/` — server APIs. `src/lib/admin/` — beta-only admin isolation,
+  authorization, mail policy and exact-origin transport.
+- `supabase/migrations/` — schema, RLS and triggers. Read
+  [supabase/README.md](supabase/README.md) before database work.
+- `public/blbd.js` — existing browser SDK; config comes from script `data-*`
+  attributes, not env files. Preserve native Webflow, Memberstack and generic
+  `data-blbd-form` conventions. Search every hardcoded path when changing CFG.
+- `public/vN/blbd.js` — immutable releases, cut with
+  `node scripts/release-sdk.mjs vN`. Never hand-edit a frozen version.
+  Verify the target site's actual loader rather than assuming pinned/edge.
+- `webflow/` — SDK install/attribute references.
+  `webflow/portal-migration/` and `public/blbd-portal.js` record the superseded
+  native portal experiment; existing auth consumers still need regression care.
+- [ADMIN-PORTAL.md](ADMIN-PORTAL.md) — beta access and operational controls.
+  Mail sending was enabled on shared beta; new local setups keep it off.
 
-**Two ways content gets rendered, both supported everywhere reasonable:**
-1. Pre-built widgets — a bare `<div data-blbd="goals">` (or `profile`,
-   `directory`, `account`, `comments`, `login-form`, `signup-form`) gets a
-   fully pre-styled widget with zero markup from the design team.
-2. Templated — the design team builds their *own* markup with
-   `data-blbd-template`, `data-blbd-bind`, `data-blbd-when`,
-   `data-blbd-action` (goals board only, so far — see `webflow/DESIGN-TEAM.md`
-   for the exact contract). Detected automatically; falls back to (1) if no
-   template markup is found. Extending this pattern to profile/directory/
-   comments is a reasonable next step if the design team hits real limits
-   with widget-level CSS overrides.
+Security belongs in Postgres RLS/triggers and verified server authorization.
+UI gating is only a convenience. Never weaken CSRF/CORS, verified-email
+requirements, admin revocation or last-admin protection for a visual change.
+Never send real audience mail as a setup or automated design test.
 
-**Automatic nav behavior (no Designer work needed, runs on every page):**
-- `mountNavAccount()` — when signed in, hides "Join"/"Sign up" nav CTAs
-  (auto-detected by text via `authIntent()`, scoped to nav-ish containers by
-  `isNavCta()`, skipping anything already tagged `data-blbd`) and injects a
-  profile-avatar dropdown (`#blbd-nav-account`) with Dashboard/Goals/Profile/
-  Community + Log out. Idempotent; removed and CTAs restored on logout. This
-  is why the "show a profile menu instead of Join when logged in" requirement
-  did NOT need a Webflow edit — it's inherently per-visitor runtime state.
-- `gateMemberPages()` — runs at boot before `start()`. A guest on any
-  `CFG.memberPaths` page (`/members,/goals,/profile,/community` by default,
-  override with `data-member-paths`) is `location.replace`'d to
-  `CFG.loginPath?next=…`. Member DATA is already RLS-protected; this is the
-  UX gate so guests don't reach a shell page by typing the URL.
-- **Pre-paint auth flag (v6)** — `webflow/head-snippet.html`, installed in
-  blbd-2's **head** freeform code. Synchronous localStorage peek that stamps
-  `data-blbd-auth="member"|"guest"` on `<html>` before any body paints, plus
-  CSS hiding the nav signup CTA for members from frame one. This is the ONLY
-  way to kill the "Join button flash": the footer script is `defer` (runs
-  post-paint) and even in the head `applyState()` must await an async session
-  check first. `applyState()` now re-stamps that attribute **first**, not
-  last, so a wrong guess self-corrects in the same frame. Has a 5s safety net
-  (if `window.BLBD` never appears, revert to `guest`) so a failed script load
-  can't strand a member with an empty nav. CSS is scoped to the navbar
-  (`.navbar-no-shadow .button-primary`), never bare `.button-primary` — that's
-  a generic Webflow class. Verified: exactly one real instance on the page.
-- `mountMemberSidebar()` (v5) — a right-docked, collapsible vertical menu
-  (Dashboard/Goals/Profile/Community + Log out, current page highlighted,
-  collapse state in localStorage). Shown only to signed-in members on member
-  pages. SDK chrome, same rationale as the dropdown — not a per-page Webflow
-  element.
+## Known implementation gotchas
 
-**The blbd-2 navbar links were repointed via the Webflow MCP (2026-08-05),
-not the SDK** — because they're the same static href for every visitor, which
-is genuinely a Designer change (unlike the dropdown/sidebar). Mapping now
-live in the shared Navbar component: About→/about-us, Feature→/features (new
-page), User Examples→/user-examples (new page), Pricing→/join, Join
-BLBD→/sign-up, and the Resources dropdown's 3 placeholder links →
-/blog, /member-blog, /upcoming-events. `/features` and `/user-examples` were
-created as themed placeholder pages (navbar + a hero embed) for the design
-team to build out. Editing one shared component fixed the nav on every page
-at once.
-
-## Editing the actual Webflow Designer — superseded, read this not the old advice
-
-**Earlier in this project's life, real Designer editing (elements, attributes,
-components) was confirmed impossible from Claude Code** — the Data API's
-Pages resource had no element-creation endpoint, the CLI had no page/element
-commands, and Designer Extensions only run while a human has the Designer
-physically open. **That conclusion no longer holds.** The user added
-Webflow's own MCP server ("Webflow MCP 2.0" / `webflow-mcp-server`,
-tool-prefixed `mcp__<connection-id>__*` — the id is per-connection, re-find
-the tools by name via `ToolSearch` rather than hardcoding a prefix) partway
-through the session, and it genuinely can create pages, insert component
-instances, set attributes, and publish. If a fresh session's `ToolSearch`
-doesn't surface tools like `data_element_tool` / `data_component_tool` /
-`data_pages_tool` / `designer_tool`, the server may not be connected — search
-for it before assuming the old limitation still applies.
-
-**AUTH CAVEAT (learned the next session):** the Webflow MCP connection can
-**drop its authorization** and then require an interactive OAuth re-login.
-When that happens in a non-interactive Claude Code run, the tools are simply
-unavailable — the harness reports "The following MCP servers require
-authentication: webflow" and you cannot run the flow. Do NOT ask the user for
-tokens/codes. Tell them to re-authorize it (claude.ai connector settings, or
-`/mcp` in an interactive session) if direct Designer edits are needed. But
-first check whether the task even needs the Designer: a lot of what looks like
-"change the navbar" is actually per-visitor runtime behavior (show X when
-logged in) that belongs in `blbd.js`, not in static Webflow markup — the SDK
-ships via the git→Vercel pipeline with no Webflow auth involved at all. Reach
-for the SDK first; reach for the MCP only for genuinely structural, same-for-
-everyone changes (a new page, a shared component instance, a real element).
-
-**Two categories of tool, with different requirements — call
-`webflow_guide_tool` first in any session that uses these, it has the
-authoritative up-to-date usage rules:**
-
-- **Data tools** (`data_*`, e.g. `data_pages_tool`, `data_element_tool`,
-  `data_component_tool`, `data_component_builder`, `data_sites_tool`) are
-  plain REST calls against Webflow's backend. They work **headlessly** —
-  confirmed working in this environment with no browser, no live Designer
-  session, nothing open on the user's end. This is how a page gets created,
-  an element tree gets read, a component instance gets inserted, attributes
-  get set, and the site gets published.
-- **`designer_tool` and `element_snapshot_tool`** interact with the user's
-  **live, currently-open Designer tab** specifically — get/set selection,
-  canvas navigation, visual snapshots. These fail with a clear "Unable to
-  connect to Webflow Designer" error (not a crash) if the user doesn't have
-  the Designer open with the MCP companion connected; the error message
-  includes a real, safe connection link to hand back to the user
-  (`https://<site-shortname>.design.webflow.com?app=...`) — share it as a
-  markdown link, don't fabricate one.
-
-**Verified end-to-end this session:** found the site's real shared `Navbar`
-component (`data_component_tool > query_components`), read the login page's
-element tree (`data_element_tool > get_all_elements`), inserted a live
-instance of that exact component before the existing embed content
-(`data_component_builder` / `data_component_tool > insert_component_instance`
-with `creation_position: "before"`), confirmed the new order by re-reading
-the tree, then published (`data_sites_tool > publish_site`) — **after
-explicit user confirmation**, since publishing is whole-site by default
-(single-page publishing needs an Enterprise plan) and pushes out any other
-unpublished draft changes too, not just the one edit just made. Verified live
-via `curl` afterward: real navbar markup present, login form still intact.
-
-**Still true and unchanged:**
-- **Webflow CLI OAuth login (`webflow auth login`) refuses without a real
-  interactive TTY** — confirmed failing identically via both the Bash tool
-  and the PowerShell tool. This is the *old* Webflow CLI (`webflow` on PATH,
-  `npm i -g webflow-cli` or similar) — unrelated to the MCP server above,
-  which authenticates differently and does work. Don't conflate the two or
-  retry the CLI login expecting a different result.
-- **The sandboxed Browser tool (`mcp__Claude_Browser__*`) crashes Claude
-  Code** — user-confirmed twice. **Do not use it, at all,** for this
-  project. The Webflow MCP tools above are a better path for anything that
-  needs the Designer anyway.
-- Prefer the **one-attribute shortcuts** (`data-blbd="account-link"` etc.)
-  over building new structure even now that real editing works — smaller
-  diffs are still easier to verify and less likely to fight the site's
-  existing design.
-- **Always confirm before publishing** — the edit itself (via data tools) is
-  safe/reversible (it's a draft-state change), but `publish_site` is
-  whole-site by default and is exactly the kind of action to check first,
-  same as any other publish action.
-
-## Verification discipline — mistakes already made, don't repeat them
-
-This session had **two false alarms** from sloppy verification, both
-corrected in the same session:
-1. A "script tag is duplicated" finding that was actually a bug in an ad-hoc
-   Node script's string-slicing, not real duplication.
-2. A "nav strip isn't there" read that was actually a loose substring count
-   (`grep -c "blbd-mini-nav"`) matching CSS selectors as well as the real
-   HTML element, producing a misleadingly high count.
-
-**Lesson: when checking whether markup shipped, match the actual opening tag
-precisely** (e.g. `grep -o '<nav class="blbd-mini-nav">'`), not a bare
-substring that could also match a CSS rule, a comment, or an unrelated
-occurrence. When in doubt, dump wider context and read it, don't trust a
-single count.
-
-Third instance (2026-08-05), same root cause: `grep -oc PATTERN` reported
-"1 occurrence" of `.button-primary` — but **`grep -c` counts matching LINES,
-not matches**, and minified Webflow HTML is one giant line. The real count
-was 3 (two were my own CSS selectors, one the actual button). Use
-`grep -o PATTERN | wc -l` for occurrences, and when a count drives a
-decision, print each match with surrounding context and eyeball it.
-
-## Known gotchas already paid for once — don't rediscover
-
-- **`NEXT_PUBLIC_*` vars must be literal `process.env.NEXT_PUBLIC_FOO` member
-  expressions** in code that ships to the browser. A dynamic lookup
-  (`process.env[name]`) is never inlined by Next.js's build-time substitution
-  and silently evaluates to `undefined` client-side — this caused a real
-  production login outage. `src/lib/env.ts` has the client-safe constants
-  spelled out individually for this reason; don't "simplify" it back to a
-  helper function.
-- **Piping a value into `vercel env add` from PowerShell bakes `\r\n` into
-  it.** Use Bash: `printf '%s' "$val" | vercel env add KEY production`.
-- **Supabase's email/OAuth confirmation links use the implicit flow** —
-  session comes back in the URL *fragment* (`#access_token=…`), which a
-  server route can never read. `/auth/confirm` (client component) and
-  `blbd.js`'s `consumeAuthFragment()` both handle this; any *new* auth entry
-  point needs the same handling, not a server-side `?code=` assumption.
-- **Tier gating is enforced in Postgres** (RLS policies + triggers in
-  `supabase/migrations/0001_init.sql`), not just in the UI or in `blbd.js`.
-  The client-side "upgrade to unlock" prompts are a courtesy; the actual
-  security boundary is the database. Verified: a free-tier user's INSERT into
-  `blog_comments` and a 6th goal slot both get rejected at the DB level even
-  if someone bypasses the JS entirely.
-- **CORS is origin-echoed, not a static allowlist** (`src/lib/cors.ts`) —
-  Webflow is reachable from the custom domain and from `*.webflow.io`
-  staging hosts simultaneously, and a static `Access-Control-Allow-Origin`
-  header can only name one origin.
-
-## Where things live
-
-- `public/blbd.js`, `public/v*/blbd.js` — the SDK, see above.
-- `webflow/` — everything meant to be pasted into Webflow: `INSTALL.md`
-  (setup steps, written for whoever's doing the pasting), `DESIGN-TEAM.md`
-  (the templating contract, written for a designer, not a developer),
-  `login-page.html`, `members-page.html` (paste-ready Embed content).
-- `src/app/(portal)/*` — the old standalone Next.js member pages
-  (dashboard/goals/profile/community). **Intentionally kept** as an internal
-  test harness (user's explicit call) — not linked from anywhere real, not
-  the intended path for actual members, useful for me to verify backend
-  changes fast without needing a Webflow page built first.
-- `src/app/page.tsx` — the portal's own root is a **service status page**
-  (diagnostics + the current install snippet), not a landing page. It
-  redirects signed-in users to `/dashboard` and does nothing else for
-  anonymous visitors — there is deliberately no marketing content here.
-- `supabase/migrations/0001_init.sql` — full schema + RLS + triggers, applied
-  via `supabase db push`. `supabase/README.md` has the reasoning for several
-  non-obvious choices (why `check_function_bodies = off` is needed, why
-  `protect_profile_columns()` exists, etc.).
-- `scripts/release-sdk.mjs` — cuts a new pinned SDK version.
-- `scripts/seed-webflow-blog.mjs` — one-shot blog-post importer via the
-  Webflow CMS Data API.
+- Client env vars must remain literal `process.env.NEXT_PUBLIC_FOO`
+  references. Dynamic lookup isn't inlined. Rebuild/restart after changing them.
+- Supabase implicit auth returns tokens in URL fragments; preserve the current
+  client handling and the explicitly supported PKCE paths. Do not replace one
+  with an unverified server-only callback assumption.
+- The signed beta auth-mail hook accepts only its configured HTTPS app origin.
+  Register/verify/recover on the shared beta portal, then sign in locally with
+  that verified account. A Supabase localhost redirect entry alone does not
+  enable local signup/recovery mail; don't weaken the hook to make it work.
+- Webflow SDK sessions use localStorage on the Webflow origin. Vercel portal
+  sessions use first-party cookies; do not assume cross-domain session sharing.
+- Public API CORS and beta admin bearer CORS have different policies. Admin
+  transport accepts only its explicit beta origin and verified current role;
+  cross-origin cookies and a client-provided `is_admin` are not authorization.
+- Avoid newline-bearing shell pipes for env values, especially PowerShell
+  `vercel env add` pipelines. Use dashboard entry or reviewed stdin handling.
+  Vercel env changes require a new deployment to reach a deployment.
+- Verify markup with precise opening tags/DOM checks. A CSS selector match is
+  not proof an element rendered; line counts aren't occurrence counts.
+- `mcp__Claude_Browser__*` previously crashed sessions on this project.
+  Use provider MCPs for structured edits; check the actual supported client
+  before choosing another browser tool.

@@ -1,73 +1,75 @@
-# BLBD Member Portal
+# BLBD — website and member/admin portal
 
-The membership backend for **Better Living Better Dying** ([blbd.life](https://blbd.life)),
-deployed at `app.blbd.life`. Next.js + Supabase + Stripe + Resend. Replaces the
-discontinued Webflow native memberships used by the Starfire template.
+Welcome, Jonas! BLBD (Better Living Better Dying) uses **Figma for design**,
+**Webflow for the public website/CMS**, and **Next.js on Vercel for the member
+and admin portal**, backed by Supabase. Design changes are developed and
+reviewed in beta first.
 
-- **New to this repo? Start here:** [`ONBOARDING.md`](./ONBOARDING.md) (Claude
-  Code) or [`ONBOARDING-CODEX.md`](./ONBOARDING-CODEX.md) (OpenAI Codex CLI /
-  ChatGPT subscription)
-- **Setup & deploy:** [`SETUP.md`](./SETUP.md)
-- **Schema notes:** [`supabase/README.md`](./supabase/README.md)
-- **Webflow snippets:** [`webflow/`](./webflow/)
+**New workstation:** follow [ONBOARDING.md](ONBOARDING.md). It includes the
+first prompt for Jonas's Claude app, laptop prerequisites, beta access, and
+[Figma, Webflow and Vercel MCP setup](MCP.md).
 
-## What's here
+## Start from the current beta branch
 
-| Area | Route(s) | Notes |
-| --- | --- | --- |
-| Auth | `/login`, `/signup`, `/forgot-password`, `/auth/callback` | Email/password + optional Google OAuth |
-| Dashboard | `/dashboard` | Goals + comment summary, tier status |
-| Goals | `/goals` | 5 living / 5 dying, drag-reorder, tier-gated slots |
-| Profile | `/profile`, `/profile/[id]` | Avatar upload, public profiles |
-| Community | `/community` | Paginated member directory (paid tiers) |
-| Membership | `/checkout`, `/settings` | Stripe Checkout + Customer Portal |
-| Comments | `/embed/comments?slug=…` | Frameable widget, Supabase Realtime |
-| Newsletter | `/api/newsletter/*`, `/admin/newsletter` | Resend, double opt-in |
-| Stripe | `/api/stripe/*` | Checkout, portal, signed webhook |
+Until the beta work is merged, use `feat/admin-portal` rather than `main`:
 
-## Stack
-
-Next.js 15 (App Router) · React 19 · TypeScript · Supabase (`@supabase/ssr`) ·
-Stripe · Resend · vanilla CSS (no Tailwind), Starfire palette in
-`src/app/globals.css`.
-
-## Develop
-
-```bash
-npm install
-cp .env.local.example .env.local   # fill in real values — see SETUP.md
-npm run dev
+```sh
+git clone --branch feat/admin-portal https://github.com/IllI/blbd.git
+cd blbd
+npm ci
 ```
 
-## Scripts
+Copy [.env.local.example](.env.local.example) to `.env.local` using
+`cp .env.local.example .env.local` on macOS/Linux or
+`Copy-Item .env.local.example .env.local` in PowerShell, then run
+`npm run dev`. Open [localhost:3000/login](http://localhost:3000/login).
 
-- `npm run dev` — local dev server
-- `npm run build` — production build (also full type-check)
-- `npm run lint` — ESLint
-- `node scripts/release-sdk.mjs vN` — freeze `public/blbd.js` as a pinned
-  `public/vN/blbd.js`. Real Webflow sites should link a versioned path, never
-  the bare `/blbd.js` (see `webflow/INSTALL.md`).
+The template has dummy values for build/layout work. Real sign-in, member
+data and admin access require **beta** configuration; see [SETUP.md](SETUP.md).
+Do not overwrite an existing local env file. Node.js 22 LTS (22.13+) is the
+recommended baseline; `.nvmrc` selects Node 22. The lockfile controls dependencies.
 
-## Deploying
+Open a **local Code session** in Claude Desktop and select this cloned
+folder, or run `claude` here. [CLAUDE.md](CLAUDE.md) provides project context;
+[AGENTS.md](AGENTS.md) directs other agents to the same instructions.
+[.mcp.json](.mcp.json) shares all three remote MCP endpoints. Each person
+still needs account invitations, server trust and OAuth sign-in.
 
-Pushing to `main` on [github.com/IllI/blbd](https://github.com/IllI/blbd)
-auto-deploys to Vercel (project `blbd`) — no manual `vercel --prod` needed
-anymore. Other branches get their own preview deployment URL.
+## Find the right context
 
-`app.blbd.life` (once its DNS record is added — see `SETUP.md`) always points
-at the latest Production deploy automatically. The interim testing aliases
-`blbd-life.vercel.app` / `blbd-staging.vercel.app` do **not** — they only move
-when explicitly re-pointed with `vercel alias set <deployment> <alias>`,
-since they're ad-hoc `.vercel.app` aliases, not a real project domain.
+| Document | Purpose |
+| --- | --- |
+| [ONBOARDING.md](ONBOARDING.md) | Jonas's first-day workstation guide and copyable Claude prompt |
+| [ENVIRONMENTS.md](ENVIRONMENTS.md) | Current beta/production IDs, branches and hosting boundary |
+| [MCP.md](MCP.md) | Figma, Webflow and Vercel connections and read-only checks |
+| [DESIGN.md](DESIGN.md) | Figma handoff, implementation destinations and review |
+| [SETUP.md](SETUP.md) | Local beta configuration and maintainer deployment setup |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | App, SDK and database responsibilities |
+| [SKILLS.md](SKILLS.md) | Project procedures and verification |
+| [ADMIN-PORTAL.md](ADMIN-PORTAL.md) | Admin accounts, email workflow and operational history |
+| [supabase/README.md](supabase/README.md) | Migrations, RLS and security |
+| [webflow/DESIGN-TEAM.md](webflow/DESIGN-TEAM.md) | Existing Webflow attribute contracts |
+| [ONBOARDING-CODEX.md](ONBOARDING-CODEX.md) | Alternative agent entry point |
 
-## Architecture notes
+## App surfaces and commands
 
-- **Supabase clients** in `src/lib/supabase/`: `client` (browser, cookies),
-  `server` (RSC/route handlers), `admin` (service role, server-only), and
-  `embed` (localStorage, for the cross-site iframe).
-- **Security is enforced in the database**, not just the UI — RLS policies and
-  triggers gate comments and goal slots by tier. See `supabase/README.md`.
-- **The comment iframe** authenticates inside the frame using a localStorage
-  session, because third-party cookies are blocked cross-site.
-- **Stripe tier changes** flow only through the webhook (`applyTier`), keeping
-  one source of truth.
+The Vercel portal includes `/login`, `/signup`, `/forgot-password`,
+`/dashboard`, `/goals`, `/profile`, `/community`, `/settings`,
+`/checkout`, and `/admin` (including accounts and newsletter tools).
+The repo also serves APIs and existing Webflow SDK integrations.
+
+Next.js 15 · React 19 · TypeScript · vanilla CSS · Supabase · Stripe · Resend.
+Versions and scripts are defined in [package.json](package.json).
+
+- `npm run dev` — local app on port 3000.
+- `npm run build` — build and type-check.
+- `npm run lint` — ESLint.
+- `npm run test:admin` — local database/admin/auth-mail logic tests.
+- `npm run test:native`, `test:social`, `test:password` — existing integration regressions.
+- `npm run test:beta` — **remote** beta checks; not a workstation prerequisite.
+
+The shared beta portal is on **Vercel Preview / `feat/admin-portal`**.
+Personal preview branches need their own verified beta env configuration.
+`blbd-staging.vercel.app` is a legacy production alias, not isolated beta.
+Pushing to `main` can deploy production. See [ENVIRONMENTS.md](ENVIRONMENTS.md)
+before publishing or deploying.

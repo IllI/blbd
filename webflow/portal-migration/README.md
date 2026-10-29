@@ -1,4 +1,15 @@
-# Native Webflow portal migration — in progress
+# Native Webflow portal migration — archived direction
+
+**Superseded 2026-10-29:** the member/admin portal stays in **Next.js on
+Vercel**. Jonas's Figma designs should follow [../../DESIGN.md](../../DESIGN.md)
+and [../../ENVIRONMENTS.md](../../ENVIRONMENTS.md). Public-site work stays in
+Webflow beta. Do not continue this migration or publish its unfinished portal
+drafts. Existing auth loaders and integrations remain deployed and need to be
+preserved until a separately reviewed change replaces them.
+
+The content below records the October 21–26 experiment and verification
+history. Page destinations, parity gates and prior publish approvals describe
+that work; they are not current instructions or standing release authorization.
 
 Tracked in [issue #7](https://github.com/IllI/blbd/issues/7); dependent backend
 work is in [PR #5](https://github.com/IllI/blbd/pull/5).
@@ -7,10 +18,11 @@ work is in [PR #5](https://github.com/IllI/blbd/pull/5).
 
 Only write/publish Webflow site `693b4fc98a599c12cbf30e36` (BLBD BETA,
 `blbd.webflow.io`). Production `69b9ae3792be3b49ef7eab96` / `blbd.life`
-remains the stable Coming Soon experience. Beta publish is authorized; production
-publish is not. Confirm the returned site ID before every mutation.
+was preserved as the stable Coming Soon experience. Beta publication was
+authorized for the recorded releases only, not future sessions. Confirm the
+returned site ID before every mutation and obtain new release authorization.
 
-## Presentation contract
+## Historical presentation contract
 
 - Convert headings, text, links, buttons, inputs, form groups, lists, cards,
   status panels, and repeated-item templates into native editable Webflow nodes.
@@ -26,7 +38,7 @@ publish is not. Confirm the returned site ID before every mutation.
 - Preserve the currently working React beta portal as a fallback/test harness
   until each corresponding Webflow page passes functional and access tests.
 
-## Page map / parity checklist
+## Historical page map / parity checklist
 
 Desired folders are **Members**, **Admin**, and **Subscribers**. The existing
 Admin folder (`693b4fcb8a599c12cbf30eb5`) also contains template styleguide,
@@ -142,7 +154,7 @@ member login to unsubscribe.
 - The dashboard snapshot attempt failed with an empty Designer error, so visual
   responsive QA is still required. Do not claim a successful screenshot check.
 
-## Integration gates before publishing
+## Historical integration gates — do not resume this migration
 
 1. Members / Subscribers folders are created; the existing Admin folder is reused
    only for new portal pages. Existing template utility pages remain unchanged.
@@ -164,8 +176,9 @@ member login to unsubscribe.
 8. Publish only beta after complete page parity. Webflow publishes the entire
    beta site, including other pending designer changes; inventory these first.
 
-This migration is **not complete**. The existing beta portal remains the working
-surface; draft construction does not mean a page has been connected or published.
+This migration was **not completed** and is now superseded. The Vercel portal
+is the intended member/admin surface; draft construction does not mean a
+Webflow page has been connected or published.
 
 ## Verification commands
 

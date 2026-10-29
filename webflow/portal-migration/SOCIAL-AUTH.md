@@ -1,5 +1,12 @@
 # Beta Google / Yahoo sign-in
 
+**Context update (2026-10-29):** the member/admin portal stays on Vercel.
+This document records existing beta Webflow auth controls and outstanding
+provider setup. Preserve deployed loaders; historical publish approvals here
+are not standing authorization for a new session. See
+[../../ENVIRONMENTS.md](../../ENVIRONMENTS.md) and
+[../../DESIGN.md](../../DESIGN.md) for current direction.
+
 ## Git evidence and current blocker
 
 - `d54d275` introduced Google/Facebook UI with optional configuration flags.

@@ -5,6 +5,9 @@ export const metadata: Metadata = { title: 'Sign-in problem' };
 
 const FRIENDLY: Record<string, string> = {
   missing_code: 'That link was missing its sign-in code. It may have been trimmed by an email client.',
+  social_setup_required: 'Google or Yahoo sign-in still needs its beta provider configuration. Email and password sign-in remain available.',
+  social_sign_in_failed: 'Social sign-in could not be started. Please try again or use your email and password.',
+  social_rate_limit: 'Too many sign-in attempts. Please wait a minute, then try again.',
 };
 
 export default async function AuthErrorPage({

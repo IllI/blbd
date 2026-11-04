@@ -1,0 +1,22 @@
+<div class="blbdp-shell" data-blbd-page="accounts" data-blbd-access="admin">
+  <div data-blbdp-menu-slot="admin"></div>
+  <main class="blbdp-main">
+    <header class="blbdp-header"><h1 class="blbdp-heading">Accounts &amp; permissions</h1><p class="blbdp-text">Administrator permissions take effect immediately. A verified email is required.</p></header>
+    <p class="blbdp-status" role="status" aria-live="polite" data-blbdp-status>Checking your administrator access…</p>
+    <form class="blbdp-list" data-blbdp-private data-blbdp-native-form="accounts">
+      <label class="blbdp-field">Filter this page by name or email<input class="blbdp-input" type="search" data-blbdp-field="account-filter" /></label>
+      <p class="blbdp-text">50 accounts per page. Account deletion and billing changes are not performed here.</p>
+      <div class="blbdp-list" data-blbdp-list="accounts">
+        <section class="blbdp-card" data-blbdp-template="account">
+          <h2 class="blbdp-subheading" data-blbdp-bind="email">Member email</h2>
+          <p class="blbdp-text" data-blbdp-bind="account-state">Verification and membership</p>
+          <label class="blbdp-field">Display name<input class="blbdp-input" type="text" maxlength="100" data-blbdp-field="display-name" /></label>
+          <label class="blbdp-check"><input type="checkbox" data-blbdp-field="is-admin" /><span>Administrator — can manage accounts, permissions, and email updates</span></label>
+          <button class="blbdp-button" type="button" data-blbdp-action="save-account">Save account</button>
+        </section>
+      </div>
+      <p class="blbdp-text" data-blbdp-empty="accounts">No matching accounts on this page.</p>
+      <div class="blbdp-actions"><button class="blbdp-button" type="button" data-blbdp-action="accounts-previous">Previous page</button><span class="blbdp-text" data-blbdp-bind="page">Page 1</span><button class="blbdp-button" type="button" data-blbdp-action="accounts-next">Next page</button></div>
+    </form>
+  </main>
+</div>

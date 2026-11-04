@@ -20,6 +20,9 @@ const PROTECTED_PREFIXES = [
 const AUTH_PAGES = ['/login', '/signup', '/forgot-password'];
 
 export async function middleware(request: NextRequest) {
+  // Supabase authenticates this one endpoint using a signed, timestamped hook.
+  // Avoid a needless session lookup within the hook's five-second deadline.
+  if (request.nextUrl.pathname === '/api/auth/send-email') return NextResponse.next();
   // This response object accumulates refreshed auth cookies and must be the
   // one returned, otherwise the rotated refresh token is dropped.
   let response = NextResponse.next({ request });

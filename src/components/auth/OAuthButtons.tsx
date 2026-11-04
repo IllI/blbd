@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { FACEBOOK_OAUTH_ENABLED, GOOGLE_OAUTH_ENABLED } from '@/lib/env';
 import { Button } from '@/components/ui/Button';
-import { Alert } from '@/components/ui/Alert';
+import type { SocialReadiness } from '@/lib/social-auth';
 
-type Provider = 'google' | 'facebook';
+type Provider = 'google' | 'facebook' | 'yahoo';
 
 const LABELS: Record<Provider, string> = {
   google: 'Continue with Google',
   facebook: 'Continue with Facebook',
+  yahoo: 'Continue with Yahoo',
 };
 
 /**
@@ -18,11 +19,11 @@ const LABELS: Record<Provider, string> = {
  * button for a provider that isn't configured in Supabase fails with an
  * opaque "provider is not enabled" error.
  */
-export function OAuthButtons({ next }: { next?: string }) {
+export function OAuthButtons({ next, betaProviders }: { next?: string; betaProviders?: SocialReadiness }) {
   const [pending, setPending] = useState<Provider | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const providers: Provider[] = [
+  const providers: Provider[] = betaProviders ? ['google', 'yahoo'] : [
     ...(GOOGLE_OAUTH_ENABLED ? (['google'] as const) : []),
     ...(FACEBOOK_OAUTH_ENABLED ? (['facebook'] as const) : []),
   ];
@@ -30,6 +31,15 @@ export function OAuthButtons({ next }: { next?: string }) {
   if (providers.length === 0) return null;
 
   async function signIn(provider: Provider) {
+    if (betaProviders && provider !== 'facebook') {
+      if (!betaProviders[provider]) return;
+      const start = new URL('/auth/social', window.location.origin);
+      start.searchParams.set('provider', provider);
+      if (next) start.searchParams.set('next', next);
+      window.location.href = start.toString();
+      return;
+    }
+    if (provider === 'yahoo') return;
     setPending(provider);
     setError(null);
 
@@ -58,7 +68,7 @@ export function OAuthButtons({ next }: { next?: string }) {
             variant="secondary"
             block
             loading={pending === provider}
-            disabled={pending !== null}
+            disabled={pending !== null || !!(betaProviders && provider !== 'facebook' && !betaProviders[provider])}
             onClick={() => signIn(provider)}
           >
             <ProviderIcon provider={provider} />
@@ -66,12 +76,16 @@ export function OAuthButtons({ next }: { next?: string }) {
           </Button>
         ))}
       </div>
+      {betaProviders && (!betaProviders.google || !betaProviders.yahoo) && <p className="small muted" role="status">
+        {[!betaProviders.google && 'Google', !betaProviders.yahoo && 'Yahoo'].filter(Boolean).join(' and ')} sign-in still needs beta provider setup. You can still use email and password.
+      </p>}
       {error && <p className="field__error">{error}</p>}
     </>
   );
 }
 
 function ProviderIcon({ provider }: { provider: Provider }) {
+  if (provider === 'yahoo') return null;
   if (provider === 'google') {
     return (
       <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">

@@ -1,93 +1,134 @@
 'use client';
-
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Field';
 import { Alert } from '@/components/ui/Alert';
+import { CampaignReview, type ReviewedCampaign as Campaign } from './CampaignReview';
+import type { Audience, MailContact, MailGroup, MailReadiness } from '@/lib/admin/types';
+type MailState = { contacts: MailContact[]; groups: MailGroup[]; campaigns: Campaign[]; mail: MailReadiness };
+function audienceLabel(a: Audience, groups: MailGroup[]) {
+  if (a.kind === 'group') return `Group: ${groups.find(g => g.id === a.groupId)?.name ?? 'saved group'}`;
+  if (a.kind === 'individuals') return `Selected individuals (${a.emails.length})`;
+  return { all: 'Everyone in beta (members + subscribers)', members: 'Verified beta members', subscribers: 'Confirmed beta subscribers' }[a.kind];
+}
 
-export function NewsletterComposer({ recipientCount }: { recipientCount: number }) {
+export function NewsletterComposer() {
+  const [data, setData] = useState<MailState | null>(null);
+  const [view, setView] = useState<'compose' | 'drafts' | 'contacts'>('drafts');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
-  const [busy, setBusy] = useState<'test' | 'send' | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-
-  async function submit(testOnly: boolean) {
-    if (
-      !testOnly &&
-      !window.confirm(`Send "${subject}" to ${recipientCount} subscribers? This can't be undone.`)
-    ) {
-      return;
-    }
-
-    setBusy(testOnly ? 'test' : 'send');
-    setError(null);
-    setNotice(null);
-
-    try {
-      const response = await fetch('/api/newsletter/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, body, testOnly }),
-      });
-
-      const payload = (await response.json()) as { sent?: number; error?: string };
-
-      if (!response.ok) {
-        setError(payload.error ?? 'Send failed.');
-      } else if (testOnly) {
-        setNotice('Test sent to your own address.');
-      } else {
-        setNotice(`Sent to ${payload.sent} subscribers.`);
-        setSubject('');
-        setBody('');
-      }
-    } catch {
-      setError('Network error.');
-    }
-
-    setBusy(null);
+  const [kind, setKind] = useState<Audience['kind']>('subscribers');
+  const [selected, setSelected] = useState<string[]>([]);
+  const [groupId, setGroupId] = useState('');
+  const [groupName, setGroupName] = useState('');
+  const [search, setSearch] = useState('');
+  const [offset, setOffset] = useState(0);
+  const [prepared, setPrepared] = useState<string | null>(null);
+  const [approved, setApproved] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const stop = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { stop.current = true; mounted.current = false; }; }, []);
+  async function load(q = search, start = offset) {
+    const res = await fetch(`/api/admin/mail?q=${encodeURIComponent(q)}&offset=${start}`, { cache: 'no-store' });
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.error);
+    if (mounted.current) setData(payload);
   }
-
-  const ready = subject.trim().length > 0 && body.trim().length > 0;
-
-  return (
-    <div className="stack">
-      {error && <Alert tone="error">{error}</Alert>}
-      {notice && <Alert tone="success">{notice}</Alert>}
-
-      <Input
-        label="Subject"
-        maxLength={200}
-        value={subject}
-        onChange={(e) => setSubject(e.target.value)}
-      />
-
-      <Textarea
-        label="Body"
-        rows={14}
-        value={body}
-        hint="Plain text. Blank lines become paragraphs."
-        onChange={(e) => setBody(e.target.value)}
-      />
-
-      <div className="row wrap">
-        <Button
-          variant="secondary"
-          loading={busy === 'test'}
-          disabled={!ready || busy !== null}
-          onClick={() => submit(true)}
-        >
-          Send test to me
-        </Button>
-        <Button
-          loading={busy === 'send'}
-          disabled={!ready || busy !== null || recipientCount === 0}
-          onClick={() => submit(false)}
-        >
-          Send to {recipientCount} subscribers
-        </Button>
-      </div>
-    </div>
-  );
+  // One initial fetch; later loads use the explicit Search/pagination actions.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { void load('', 0).catch(e => setError(e.message)); }, []);
+  function changed() { setNotice(''); }
+  function audience(): Audience {
+    if (kind === 'individuals') return { kind, emails: selected };
+    if (kind === 'group') return { kind, groupId };
+    return { kind };
+  }
+  async function post(input: Record<string, unknown>) {
+    const res = await fetch('/api/admin/mail', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.error ?? 'Request failed.');
+    return payload;
+  }
+  async function run(action: () => Promise<void>) {
+    setBusy(true); setError(''); setNotice('');
+    try { await action(); } catch (e) { setError(e instanceof Error ? e.message : 'Request failed.'); }
+    finally { if (mounted.current) setBusy(false); }
+  }
+  async function prepare() {
+    const preview = await post({ action: 'preview', audience: audience() });
+    if (!preview.count) throw new Error('No eligible recipients. Pending subscriptions and opted-out contacts are excluded.');
+    const { id } = await post({ action: 'prepare', subject, body, audience: audience() });
+    setPrepared(id); setApproved(null); await load(); setView('drafts');
+    setNotice('Draft saved. Review the email and use the test/send panel beside it.');
+  }
+  async function send(c: Campaign) {
+    if (approved !== c.id || !data?.mail.canSend || !c.tested_at) return;
+    stop.current = false; setSending(true);
+    try {
+      let complete = false;
+      while (!complete && !stop.current) {
+        const result = await post({ action: 'send', id: c.id, confirmCount: c.recipient_count });
+        complete = result.complete;
+        if (mounted.current) await load();
+      }
+      if (mounted.current) setNotice(complete ? 'Campaign complete. “Accepted” means the provider accepted the message, not confirmed inbox delivery.' : 'Paused after the current batch. Resume this same campaign to continue.');
+    } finally { if (mounted.current) { setSending(false); setApproved(null); } }
+  }
+  const active = data?.campaigns.find(c => c.id === prepared) ?? data?.campaigns[0];
+  function openDraft(c: Campaign) { setPrepared(c.id); setApproved(null); setError(''); setNotice(''); }
+  function copyDraft(c: Campaign) {
+    if ((subject.trim() || body.trim()) && !window.confirm('Replace the unsaved text in Write update with a copy of this draft? The saved original will not change.')) return;
+    setSubject(c.subject); setBody(c.body); setKind(c.audience.kind);
+    setSelected(c.audience.kind === 'individuals' ? c.audience.emails : []);
+    setGroupId(c.audience.kind === 'group' ? c.audience.groupId : '');
+    setApproved(null); setView('compose'); setNotice('Working on a new copy. Save and test it before sending; the original is unchanged.');
+  }
+  return <div className="stack admin-mail-workspace">
+    <nav className="admin-mail-nav" aria-label="Email workspace">
+      <button type="button" aria-pressed={view === 'compose'} disabled={busy} onClick={() => setView('compose')}>Write update</button>
+      <button type="button" aria-pressed={view === 'drafts'} disabled={busy} onClick={() => setView('drafts')}>Saved emails{data ? ` (${data.campaigns.length})` : ''}</button>
+      <button type="button" aria-pressed={view === 'contacts'} disabled={busy} onClick={() => setView('contacts')}>Contacts & groups</button>
+    </nav>
+    {error && <Alert tone="error">{error} <button className="admin-text-action" type="button" disabled={busy} onClick={() => run(() => load())}>Refresh data</button></Alert>}
+    {notice && <Alert tone="success">{notice}</Alert>}
+    {!data && !error && <p role="status">Loading email workspace…</p>}
+    {view === 'compose' && <section className="card stack"><h2>Write an email update</h2>
+      <Input label="Subject" value={subject} maxLength={200} disabled={busy} onChange={e => { setSubject(e.target.value); changed(); }} />
+      <Textarea label="Message" hint="Plain text; blank lines become paragraphs. Unsubscribe and sender details are added automatically." value={body} rows={10} maxLength={50000} disabled={busy} onChange={e => { setBody(e.target.value); changed(); }} />
+      <label className="field">Audience<select className="input" value={kind} disabled={busy} onChange={e => { setKind(e.target.value as Audience['kind']); changed(); }}>
+        <option value="subscribers">Confirmed beta subscribers</option><option value="members">Verified beta members</option><option value="all">Everyone in beta (members + subscribers)</option><option value="individuals">Choose individuals</option><option value="group">Saved group</option>
+      </select></label>
+      {kind === 'group' && <label className="field">Group<select className="input" value={groupId} disabled={busy} onChange={e => { setGroupId(e.target.value); changed(); }}><option value="">Choose a group</option>{data?.groups.map(g => <option value={g.id} key={g.id}>{g.name} ({g.emails.length})</option>)}</select></label>}
+      <p className="small muted">This is the beta contact list, not the live website’s mailing list. Unconfirmed and opted-out contacts will not receive updates.</p>
+      {kind === 'individuals' && <Button variant="secondary" disabled={busy} onClick={() => setView('contacts')}>Choose recipients ({selected.length} selected)</Button>}
+      <Button disabled={busy || !data || !subject.trim() || !body.trim()} onClick={() => run(prepare)}>Save draft & continue to review</Button>
+      {data?.mail.needsPostalAddress && <p className="small muted">You can save and test this email now. Sending to its audience is paused until BLBD’s physical mailing address is supplied.</p>}
+    </section>}
+    {view === 'contacts' && <section className="card stack"><h2>Contacts & groups</h2>
+      <p>Select contacts to email directly or save them as a reusable group.</p>
+      <form className="row wrap" onSubmit={e => { e.preventDefault(); setOffset(0); void run(() => load(search, 0)); }}><Input label="Find contacts by email" value={search} onChange={e => setSearch(e.target.value)} /><Button type="submit" disabled={busy}>Search</Button></form>
+      <div className="admin-contact-list">{data?.contacts.map(c => <label className="checkbox" key={c.email}><input type="checkbox" checked={selected.includes(c.email)} disabled={busy || c.opted_out} onChange={e => { setSelected(s => e.target.checked ? [...s, c.email] : s.filter(v => v !== c.email)); changed(); }} /><span className="admin-account-email">{c.email}<small className="muted"> {c.member ? 'Member ' : ''}{c.subscriber ? 'Subscriber ' : ''}{c.opted_out ? '(opted out)' : ''}</small></span></label>)}</div>
+      {data && !data.contacts.length && <p>No matching contacts. Recipients must first verify a beta account or confirm a subscription.</p>}
+      <div className="row wrap">{offset > 0 && <Button variant="secondary" disabled={busy} onClick={() => run(async () => { await load(search, offset - 100); setOffset(offset - 100); })}>Previous contacts</Button>}{(data?.contacts.length ?? 0) === 100 && <Button variant="secondary" disabled={busy} onClick={() => run(async () => { await load(search, offset + 100); setOffset(offset + 100); })}>Next contacts</Button>}{selected.length > 0 && <Button variant="ghost" disabled={busy} onClick={() => { setSelected([]); changed(); }}>Clear selection ({selected.length})</Button>}</div>
+      <Button disabled={busy || !selected.length} onClick={() => { setKind('individuals'); setView('compose'); }}>Use {selected.length} selected contacts in an update</Button>
+      <Input label="New group name" value={groupName} maxLength={100} disabled={busy} onChange={e => setGroupName(e.target.value)} />
+      <Button variant="secondary" disabled={busy || !selected.length || !groupName.trim()} onClick={() => run(async () => { const saved = await post({ action: 'group', name: groupName, emails: selected }); setGroupId(saved.group.id); setKind('group'); setGroupName(''); await load(); setView('compose'); setNotice('Group saved and selected for your update.'); })}>Save group & write an update</Button>
+      {!!data?.groups.length && <div className="stack"><h3>Saved groups</h3>{data.groups.map(g => <Button variant="secondary" disabled={busy} key={g.id} onClick={() => { setGroupId(g.id); setKind('group'); setView('compose'); }}>{g.name} · {g.emails.length} contacts → Write update</Button>)}</div>}
+    </section>}
+    {view === 'drafts' && data && <>
+      {!data.campaigns.length ? <section className="card stack"><h2>No saved emails yet</h2><p>Write an update, choose its recipients, then save it to review and test.</p><Button onClick={() => setView('compose')}>Write your first update</Button></section> : <>
+        <div className="admin-draft-picker" aria-label="Choose a saved email">{data.campaigns.map(c => <button type="button" key={c.id} disabled={busy} aria-pressed={active?.id === c.id} onClick={() => openDraft(c)}>
+          <strong>{c.subject}</strong><span>{c.status === 'complete' ? 'Sent' : c.status === 'sending' ? 'Send started' : c.tested_at ? 'Test sent' : 'Draft'} · {new Date(c.created_at).toLocaleString()}</span>
+        </button>)}</div>
+        {active && <CampaignReview campaign={active} audienceName={audienceLabel(active.audience, data.groups)} mail={data.mail} busy={busy} sending={sending} approved={approved === active.id}
+          onApprove={value => setApproved(value ? active.id : null)} onCopy={() => copyDraft(active)} onPause={() => { stop.current = true; }}
+          onTest={() => run(async () => { await post({ action: 'test', id: active.id }); setApproved(null); await load(); setNotice('Test sent to your signed-in inbox. No audience emails were sent.'); })}
+          onSend={() => run(() => send(active))} />}
+      </>}
+    </>}
+  </div>;
 }

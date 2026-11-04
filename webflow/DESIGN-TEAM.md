@@ -1,4 +1,13 @@
-# Building membership pages in Webflow
+# Existing Webflow SDK design contracts
+
+**Current direction (2026-10-29):** Jonas designs in Figma. Public-site
+implementation stays in Webflow beta; the **member/admin portal stays on
+Vercel**. Start with [../DESIGN.md](../DESIGN.md),
+[../ONBOARDING.md](../ONBOARDING.md) and [../MCP.md](../MCP.md).
+The contracts below maintain existing SDK consumers, not a plan to build
+new portal screens in Webflow. Use beta site `693b4fc98a599c12cbf30e36` and
+preserve the published beta auth loaders; do not replace them with a global
+SDK installation as part of onboarding.
 
 This is for whoever is designing the login, signup, and member pages in the
 Webflow Designer. You do not need to know anything about Supabase, APIs, or
@@ -120,9 +129,11 @@ two states to show.
 
 ## Testing a page
 
-1. Publish the site.
-2. The script itself updates within ~5 minutes of any backend change without
-   a republish — but attribute changes on your elements need a normal
-   publish, same as any other Webflow edit.
-3. Hard-refresh (Ctrl/Cmd+Shift+R) if something looks stale — that's the
-   script's own cache, not your publish.
+1. Inspect the draft and responsive layout in beta. Before publishing,
+   inventory all pending site changes and obtain explicit release authorization.
+2. After an authorized beta publish, verify the actual script URL and DOM
+   attributes. Mutable SDK paths and immutable version/deployment paths have
+   different update behavior; a backend push does not update a pinned asset.
+3. Test with a verified beta account and report auth, visual and runtime
+   results separately. Keep local mail disabled. Do not turn off email
+   verification or change production to make a visual test pass.

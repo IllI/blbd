@@ -16,10 +16,19 @@ import type {
   NewsletterSubscriber,
   Profile,
 } from '@/lib/types';
+import type { Audience, AuditEntry, MailCampaign, MailContact, MailGroup, MailPreference, MailRecipient } from '@/lib/admin/types';
+
+type AdminTable<Row> = { Row: Row; Insert: Partial<Row>; Update: Partial<Row>; Relationships: [] };
 
 export interface Database {
   public: {
     Tables: {
+      admin_audit: AdminTable<AuditEntry>;
+      admin_bootstrap: AdminTable<{ email: string; claimed_by: string | null; claimed_at: string | null }>;
+      mail_groups: AdminTable<MailGroup>;
+      mail_campaigns: AdminTable<MailCampaign>;
+      mail_recipients: AdminTable<MailRecipient>;
+      mail_preferences: AdminTable<MailPreference>;
       profiles: {
         Row: Profile;
         Insert: {
@@ -139,7 +148,14 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      admin_set_account: { Args: { p_actor: string; p_user: string; p_name: string; p_admin: boolean }; Returns: undefined };
+      admin_mail_contacts: { Args: Record<string, never>; Returns: MailContact[] };
+      admin_mail_audience: { Args: { p_audience: Audience }; Returns: { email: string }[] };
+      admin_prepare_mail: { Args: { p_actor: string; p_subject: string; p_body: string; p_audience: Audience }; Returns: string };
+      admin_claim_mail: { Args: { p_actor: string; p_campaign: string; p_lease: string }; Returns: boolean };
+      unsubscribe_blbd_updates: { Args: { p_token: string }; Returns: undefined };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

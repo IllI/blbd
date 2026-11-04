@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { SignupForm } from '@/components/auth/SignupForm';
 import { OAuthButtons } from '@/components/auth/OAuthButtons';
 import { safeNext } from '@/lib/redirects';
+import { socialReadinessForUI } from '@/lib/social-auth';
 
 export const metadata: Metadata = { title: 'Join BLBD' };
 
@@ -24,7 +25,7 @@ export default async function SignupPage({
 
       <SignupForm next={next} />
 
-      <OAuthButtons next={next} />
+      <OAuthButtons next={next} betaProviders={await socialReadinessForUI()} />
 
       <p className="auth-footer">
         Already a member? <Link href={`/login?next=${encodeURIComponent(next)}`}>Log in</Link>

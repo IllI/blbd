@@ -1,114 +1,93 @@
-# How this fits together
+# How BLBD fits together
 
-**Webflow is the site.** The founder paid for Webflow's CMS and design; that
-is where the homepage, about, join, and blog live and get edited. Nothing here
-replaces or duplicates that.
+Current team direction: **2026-10-29**. See
+[ENVIRONMENTS.md](ENVIRONMENTS.md) for exact beta and production targets.
 
-**This project is the membership layer** — a free, self-hosted replacement for
-Memberstack. Webflow discontinued its native User Accounts feature, which left
-the Starfire template's login, signup, and gating markup in place but dead.
-We bring that markup back to life with Supabase behind it.
+**Figma is the design source. Webflow hosts the public website and CMS.
+Vercel hosts the member/admin portal and backend. Supabase provides auth,
+data, storage and database permissions.** Jonas designs in Figma, and the
+team implements and reviews those designs in the corresponding beta surface.
 
-```
-                 blbd.life  (Webflow — design + content, unchanged)
-    ┌──────────────────────────────────────────────────────────────┐
-    │  Home · About · Join · Blog · Contact                        │
-    │  /log-in  /sign-up   ← Starfire's own forms, revived         │
-    │  Blog post template  ← <div data-blbd="comments">            │
-    │                                                              │
-    │   <script src="app.blbd.life/blbd.js">  ← the whole install  │
-    └───────────────────────────┬──────────────────────────────────┘
-                                │ first-party fetch (CORS)
-                                ▼
-              ┌─────────────────────────────────┐
-              │  Supabase                       │
-              │  auth · profiles · goals ·      │
-              │  comments · newsletter · RLS    │
-              └─────────────────────────────────┘
-                                ▲
-                                │
-    ┌───────────────────────────┴──────────────────────────────────┐
-    │  app.blbd.life  (Next.js — the *app*, not a website)         │
-    │  /dashboard /goals /profile /community /settings             │
-    │  /checkout → Stripe · /admin/newsletter → Resend             │
-    │  /api/* · /blbd.js                                           │
-    └──────────────────────────────────────────────────────────────┘
+```text
+Figma frames, components, assets and interaction specs
+    |
+    +--> Webflow beta: public pages, marketing, blog / CMS
+    |       |
+    |       +--> links to beta Vercel portal
+    |       +--> existing blbd.js widgets / native auth integrations
+    |
+    +--> Next.js on Vercel: member/admin portal, auth UI, APIs, SDK assets
+                |
+                +--> isolated beta Supabase: Auth, Postgres/RLS, Storage
+                +--> Stripe: configured payment flows
+                +--> Resend: configured auth mail / controlled admin mail
+                +--> Webflow CMS reads for member blog
 ```
 
-## The dividing line
+## Responsibility map
 
-| | Webflow | This project |
-| --- | --- | --- |
-| Homepage, marketing, brand | ✅ owns it | never touches it |
-| Blog authoring | ✅ owns it | reads only |
-| Login / signup **markup** | ✅ owns it | supplies the behaviour |
-| Identity, sessions, passwords | ✗ discontinued | ✅ Supabase Auth |
-| Member data, goals, comments | ✗ | ✅ Supabase Postgres |
-| Payments, tiers | ✗ | ✅ Stripe |
-| Email | ✗ | ✅ Resend |
-
-## Members never change domains
-
-Every member-facing feature renders **inside Webflow pages** via a div and one
-custom attribute — goals, profile, directory, account, comments. Nobody is
-bounced to another domain to use the site.
-
-| Webflow page | Attribute on an empty div |
+| Area | Implementation |
 | --- | --- |
-| `/members` | `data-blbd="account"` |
-| `/members/goals` | `data-blbd="goals"` |
-| `/members/profile` | `data-blbd="profile"` |
-| `/members/community` | `data-blbd="directory"` |
-| Blog post template | `data-blbd="comments"` |
+| Design explorations, components, responsive specs | Figma |
+| Public home/about/join/blog, CMS authoring | Webflow |
+| Member dashboard, goals, profiles, community, settings | Next.js on Vercel |
+| Admin accounts, newsletter composition/review | Next.js on Vercel |
+| Login/signup/recovery and member sessions | Vercel portal + Supabase Auth; preserve existing Webflow auth entry integrations |
+| Data access and tier restrictions | Supabase RLS/triggers plus server-side authorization |
+| Payments and tier updates | Stripe and verified server webhooks |
+| Email dispatch | Server-side Resend integration with beta admin safeguards |
+| Existing Webflow inline behavior | `public/blbd.js` and documented attributes |
 
-The only unavoidable hand-offs are to **Stripe** (hosted checkout and the
-billing portal) — a payment processor, not a second site — and returning
-straight back afterwards.
+The root app page is currently a service-status/install page; signed-in users
+redirect to `/dashboard`. Portal UI is a supported implementation target.
+Public marketing content remains in Webflow rather than being copied into
+Next.js. The existing app blog reads Webflow CMS rather than authoring a
+second copy of the same content.
 
-`app.blbd.life` is therefore a **service endpoint, not a website**: it serves
-`/blbd.js`, the Stripe and newsletter APIs, and an admin newsletter composer.
-It has no landing page — `/` redirects members to their dashboard and everyone
-else to blbd.life. The React pages under `/dashboard`, `/goals` etc. remain as
-a fallback surface but are not the intended path for members.
+## Existing integrations and historical direction
 
-## Why a script and not iframes
+The project began as a replacement for Memberstack and Webflow's retired
+native User Accounts functionality. The browser SDK supports legacy forms,
+auth state, goals, profiles, comments and other inline widgets on Webflow.
 
-The SDK (`public/blbd.js`) runs **first-party on blbd.life**. That matters:
+A later experiment created native Webflow member/admin drafts and a portal
+controller. **That migration is superseded by the October 29 decision to
+keep the member/admin portal on Vercel.** Its files and draft IDs remain in
+[webflow/portal-migration/README.md](webflow/portal-migration/README.md)
+for maintenance/history. Do not delete existing integrations or publish that
+migration during onboarding. Beta Webflow auth entry pages already have
+published integrations that require care.
 
-- The session lives in blbd.life's own `localStorage`, so there is no
-  third-party-cookie or storage-partition problem.
-- Comments render inline in the Webflow page instead of in a cross-site
-  iframe, so they inherit the page's typography and resize naturally.
-- Gating happens before paint via attributes, so member-only content does not
-  flash.
+## Auth and security boundaries
 
-This is the same shape Memberstack uses, which is why it composes cleanly with
-a Webflow site.
+- The Vercel portal uses first-party cookie sessions through the
+  `src/lib/supabase/client.ts` and `server.ts` clients.
+- The existing Webflow SDK executes on the Webflow origin and uses its own
+  localStorage session. Cross-domain cookies/localStorage are not shared
+  automatically. Review redirects, confirmation callbacks and login flows
+  whenever navigation crosses between Webflow and Vercel.
+- The existing comments iframe has its own embed client. It does not replace
+  inline Webflow SDK support.
+- Public Supabase anon keys are browser-visible; Postgres RLS/triggers enforce
+  ownership, tier rules and protected profile columns.
+- Admin routes verify sessions, email verification and current admin grants.
+  The beta environment guard rejects the production Supabase project.
+- The service-role client is server-only and bypasses RLS. It belongs in
+  privileged server operations, never in design assets, client code or Webflow.
+- Cross-origin beta admin bearer transport is an explicit opt-in for existing
+  native consumers. It is separate from public API CORS and requires exact
+  beta-origin and current-role checks. Preserve it without enabling it on
+  a new workstation.
+- Mail review, test-before-send, suppression, snapshots and idempotency are
+  functional safeguards, not styling choices.
 
-Verified from the live `blbd.webflow.io` origin: password login returns a
-token, and authenticated reads of `profiles` and `blog_comments` both succeed
-— Supabase's CORS defaults permit it, no proxy needed.
+## Local and shared beta
 
-## Security model
+A laptop runs `http://localhost:3000`. The checked-in env example provides
+dummy values for preparation; functional sessions need beta credentials.
+The shared Vercel beta branch uses its own Supabase project.
+A personal Preview must be configured independently before use.
 
-Everything is enforced in Postgres, not in the browser:
-
-- The anon key is public by design; RLS decides what it can reach.
-- Comment insertion requires a paid tier (`has_paid_tier()` in the INSERT
-  policy) — the SDK's upgrade prompt is a courtesy, not the control.
-- Goal slots are capped per tier by a trigger.
-- `is_admin` and `membership_tier` are reverted on self-update by a trigger;
-  only the service role (Stripe webhooks, admin routes) can change them.
-
-Tampering with the SDK in devtools gets you nothing.
-
-## Content flow
-
-Posts are authored once, in Webflow, and surface in two places:
-
-1. **blbd.life/blog** — the public Webflow pages, with the comment div.
-2. **app.blbd.life/blog** — a members' reading surface that *pulls* from the
-   Webflow CMS Data API (`lib/webflow.ts`, ISR-cached 5 min).
-
-Webflow remains the single source of truth; nothing is re-keyed. Publish in
-Webflow and it appears in both within five minutes. Drafts stay hidden in both.
+Figma/Webflow/Vercel MCPs give an agent access to provider tools using the
+teammate's own account; they do not replace the app's env or member login.
+See [MCP.md](MCP.md) and [SETUP.md](SETUP.md).

@@ -1,0 +1,40 @@
+<div class="blbdp-shell" data-blbd-page="dashboard" data-blbd-access="member">
+  <nav class="blbdp-menu" aria-label="Member navigation" data-blbd-menu="member">
+    <a class="blbdp-brand" href="/members/dashboard">BLBD member portal</a>
+    <a class="blbdp-menu-link" href="/members/dashboard">Dashboard</a>
+    <a class="blbdp-menu-link" href="/members/goals">Goals</a>
+    <a class="blbdp-menu-link" href="/members/profile">My profile</a>
+    <a class="blbdp-menu-link" href="/members/community">Community</a>
+    <a class="blbdp-menu-link" href="/members/settings">Account settings</a>
+    <a class="blbdp-menu-link" href="/admin/portal" data-blbd-access="admin">Administration</a>
+    <button class="blbdp-button" type="button" data-blbd="logout">Log out</button>
+  </nav>
+  <main class="blbdp-main">
+    <header class="blbdp-header">
+      <h1 class="blbdp-heading">Hello, <span data-blbd-field="display_name">Member</span></h1>
+      <p class="blbdp-text" data-blbd-dashboard="summary">Your goals for better living and better dying, together in one place.</p>
+    </header>
+    <div class="blbdp-stats">
+      <section class="blbdp-card"><h2 class="blbdp-label">Living goals</h2><p class="blbdp-stat" data-blbd-dashboard="living-count">0</p><p class="blbdp-text" data-blbd-dashboard="living-completed">0 complete</p></section>
+      <section class="blbdp-card"><h2 class="blbdp-label">Dying goals</h2><p class="blbdp-stat" data-blbd-dashboard="dying-count">0</p><p class="blbdp-text" data-blbd-dashboard="dying-completed">0 complete</p></section>
+      <section class="blbdp-card"><h2 class="blbdp-label">Membership</h2><p class="blbdp-stat" data-blbd-field="membership_tier">Free</p><a class="blbdp-link" href="/members/settings">Manage membership</a></section>
+    </div>
+    <section class="blbdp-card">
+      <h2 class="blbdp-subheading">Your goals</h2>
+      <a class="blbdp-link" href="/members/goals">Open your goals board</a>
+      <p class="blbdp-text" data-blbd-empty="goals">Start with one goal. You can edit or complete it on your goals board.</p>
+      <div class="blbdp-list" data-blbd-list="dashboard-goals">
+        <article class="blbdp-row" data-blbd-template="dashboard-goal"><h3 class="blbdp-label" data-blbd-bind="title">Your goal title</h3><p class="blbdp-text" data-blbd-bind="description">Your goal description</p><p class="blbdp-text" data-blbd-bind="status">In progress</p></article>
+      </div>
+    </section>
+    <section class="blbdp-card">
+      <h2 class="blbdp-subheading">Recent conversations</h2>
+      <a class="blbdp-link" href="/blog">Read the blog</a>
+      <p class="blbdp-text" data-blbd-empty="comments">Your recent comments will appear here.</p>
+      <div class="blbdp-list" data-blbd-list="dashboard-comments">
+        <article class="blbdp-row" data-blbd-template="dashboard-comment"><p class="blbdp-text" data-blbd-bind="content">Your comment</p><a class="blbdp-link" data-blbd-bind="post-link" href="/blog">Read the conversation</a></article>
+      </div>
+    </section>
+    <p class="blbdp-text" role="status" data-blbd-status="dashboard">This unpublished page is being connected to the beta membership services.</p>
+  </main>
+</div>

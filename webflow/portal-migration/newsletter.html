@@ -1,0 +1,56 @@
+<div class="blbdp-shell" data-blbd-page="newsletter" data-blbd-access="admin">
+  <div data-blbdp-menu-slot="admin"></div>
+  <main class="blbdp-main">
+    <header class="blbdp-header"><h1 class="blbdp-heading">Email updates</h1><p class="blbdp-text">Write, test, and send an update to your beta contacts.</p></header>
+    <p class="blbdp-status" role="status" aria-live="polite" data-blbdp-status>Checking your administrator access…</p>
+    <form class="blbdp-list" data-blbdp-private data-blbdp-native-form="newsletter">
+      <nav class="blbdp-actions" aria-label="Email workspace"><button class="blbdp-button" type="button" data-blbdp-action="compose">Write update</button><button class="blbdp-button" type="button" data-blbdp-action="drafts">Saved emails</button><button class="blbdp-button" type="button" data-blbdp-action="contacts">Contacts &amp; groups</button><button class="blbdp-button" type="button" data-blbdp-action="reload">Refresh</button></nav>
+      <section class="blbdp-card" data-blbdp-panel="compose">
+        <h2 class="blbdp-subheading">Write an email update</h2>
+        <label class="blbdp-field">Subject<input class="blbdp-input" type="text" maxlength="200" data-blbdp-field="subject" /></label>
+        <label class="blbdp-field">Message<textarea class="blbdp-input" rows="10" maxlength="50000" data-blbdp-field="body"></textarea></label>
+        <p class="blbdp-text">Plain text. Blank lines become paragraphs. Sender details and unsubscribe links are added automatically.</p>
+        <fieldset class="blbdp-field"><legend>Audience</legend>
+          <label class="blbdp-check"><input type="radio" name="audience" data-blbdp-field="audience" data-blbdp-value="subscribers" checked /><span>Confirmed beta subscribers</span></label>
+          <label class="blbdp-check"><input type="radio" name="audience" data-blbdp-field="audience" data-blbdp-value="members" /><span>Verified beta members</span></label>
+          <label class="blbdp-check"><input type="radio" name="audience" data-blbdp-field="audience" data-blbdp-value="all" /><span>Everyone in beta</span></label>
+          <label class="blbdp-check"><input type="radio" name="audience" data-blbdp-field="audience" data-blbdp-value="individuals" /><span>Selected individuals</span></label>
+          <label class="blbdp-check"><input type="radio" name="audience" data-blbdp-field="audience" data-blbdp-value="group" /><span>Saved group</span></label>
+        </fieldset>
+        <div class="blbdp-actions" data-blbdp-when="group"><p class="blbdp-text" data-blbdp-bind="selected-group">No group selected</p><button class="blbdp-button" type="button" data-blbdp-action="contacts">Choose a saved group</button></div>
+        <div class="blbdp-actions" data-blbdp-when="individuals"><p class="blbdp-text" data-blbdp-bind="selected-count">0 contacts selected</p><button class="blbdp-button" type="button" data-blbdp-action="contacts">Choose contacts</button></div>
+        <p class="blbdp-text">This is the beta list, not the live website’s mailing list. Unconfirmed and opted-out contacts are excluded.</p>
+        <button class="blbdp-button" type="button" data-blbdp-action="prepare">Save draft &amp; review</button>
+      </section>
+      <section class="blbdp-list" data-blbdp-panel="drafts">
+        <h2 class="blbdp-subheading">Saved emails</h2><p class="blbdp-text" data-blbdp-empty="campaigns">No saved emails yet. Choose Write update to start.</p>
+        <div class="blbdp-list" data-blbdp-list="campaigns"><button class="blbdp-draft" type="button" data-blbdp-template="campaign" data-blbdp-action="open-campaign"><strong data-blbdp-bind="subject">Email subject</strong><span data-blbdp-bind="campaign-state">Draft</span></button></div>
+        <section class="blbdp-card" data-blbdp-review>
+          <h2 class="blbdp-subheading" data-blbdp-bind="review-subject">Email preview</h2>
+          <p class="blbdp-text" data-blbdp-bind="review-audience">Reviewed audience</p>
+          <div class="blbdp-message" data-blbdp-bind="review-body">Your saved message</div>
+          <p class="blbdp-text">Reply-to: contact@blbd.life. Sender details and unsubscribe links are added to audience emails.</p>
+          <button class="blbdp-button" type="button" data-blbdp-action="copy">Use this message in a new draft</button>
+          <h3 class="blbdp-label" data-blbdp-bind="test-state">First, send yourself a test</h3>
+          <p class="blbdp-text">Only your signed-in inbox receives the test, not the audience. Check that email before approving a send.</p>
+          <button class="blbdp-button" type="button" data-blbdp-action="test">Send test to myself</button>
+          <p class="blbdp-status" data-blbdp-bind="send-blockers">Checking sending setup…</p>
+          <label class="blbdp-check"><input type="checkbox" data-blbdp-field="approve" /><span>I checked my test and approve sending to this exact audience. Emails cannot be recalled.</span></label>
+          <button class="blbdp-button" type="button" data-blbdp-action="send">Send to reviewed audience</button>
+          <button class="blbdp-button" type="button" data-blbdp-action="pause">Pause after current batch</button>
+          <p class="blbdp-text" data-blbdp-bind="delivery">Provider acceptance and remaining count</p>
+        </section>
+      </section>
+      <section class="blbdp-card" data-blbdp-panel="contacts">
+        <h2 class="blbdp-subheading">Contacts &amp; groups</h2>
+        <label class="blbdp-field">Search contacts by email<input class="blbdp-input" type="search" data-blbdp-field="search" /></label><button class="blbdp-button" type="button" data-blbdp-action="search">Search</button>
+        <div class="blbdp-list" data-blbdp-list="contacts"><label class="blbdp-check" data-blbdp-template="contact"><input type="checkbox" data-blbdp-field="contact" /><span data-blbdp-bind="email">Contact email</span><span data-blbdp-bind="contact-state">Member or subscriber</span></label></div>
+        <p class="blbdp-text" data-blbdp-empty="contacts">No matching contacts. Recipients must verify their beta account or confirm their subscription.</p>
+        <div class="blbdp-actions"><button class="blbdp-button" type="button" data-blbdp-action="contacts-previous">Previous contacts</button><button class="blbdp-button" type="button" data-blbdp-action="contacts-next">Next contacts</button><button class="blbdp-button" type="button" data-blbdp-action="clear-selection">Clear selection</button></div>
+        <p class="blbdp-text" data-blbdp-bind="selected-count">0 contacts selected</p><button class="blbdp-button" type="button" data-blbdp-action="use-contacts">Write to selected contacts</button>
+        <label class="blbdp-field">New group name<input class="blbdp-input" type="text" maxlength="100" data-blbdp-field="group-name" /></label><button class="blbdp-button" type="button" data-blbdp-action="save-group">Save selected contacts as a group</button>
+        <h3 class="blbdp-label">Saved groups</h3><div class="blbdp-list" data-blbdp-list="groups"><button class="blbdp-draft" type="button" data-blbdp-template="group" data-blbdp-action="use-group"><span data-blbdp-bind="name">Group name</span><span data-blbdp-bind="group-count">Contact count</span></button></div>
+      </section>
+    </form>
+  </main>
+</div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import type { Profile } from '@/lib/types';
 import { canViewDirectory } from '@/lib/tiers';
 import { createClient } from '@/lib/supabase/client';
@@ -23,10 +23,12 @@ export function PortalShell({
   profile,
   email,
   children,
+  logoutHref = '/login',
 }: {
   profile: Profile | null;
   email: string;
   children: React.ReactNode;
+  logoutHref?: string;
 }) {
   const pathname = usePathname();
   const [navOpen, setNavOpen] = useState(false);
@@ -51,6 +53,7 @@ export function PortalShell({
   ];
 
   if (profile?.is_admin) {
+    items.push({ href: '/admin', label: 'Administration', icon: '⚙' });
     items.push({ href: '/admin/newsletter', label: 'Newsletter', icon: '✉' });
   }
 
@@ -113,7 +116,7 @@ export function PortalShell({
             </Link>
           </div>
 
-          <UserMenu name={name} email={email} avatarUrl={profile?.avatar_url} />
+          <UserMenu name={name} email={email} avatarUrl={profile?.avatar_url} logoutHref={logoutHref} />
         </header>
 
         <main className="portal-content">{children}</main>
@@ -126,14 +129,16 @@ function UserMenu({
   name,
   email,
   avatarUrl,
+  logoutHref,
 }: {
   name: string;
   email: string;
   avatarUrl?: string | null;
+  logoutHref: string;
 }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -156,9 +161,17 @@ function UserMenu({
 
   async function signOut() {
     setSigningOut(true);
-    await createClient().auth.signOut();
-    router.replace('/login');
-    router.refresh();
+    setSignOutError(null);
+    try {
+      const { error } = await createClient().auth.signOut();
+      if (error) throw error;
+      // Leave the portal only after its first-party session has been cleared.
+      // A full navigation also discards cached authenticated portal UI.
+      window.location.replace(logoutHref);
+    } catch {
+      setSignOutError('Unable to log out. Please try again.');
+      setSigningOut(false);
+    }
   }
 
   return (
@@ -189,6 +202,7 @@ function UserMenu({
           <button type="button" role="menuitem" onClick={signOut} disabled={signingOut}>
             {signingOut ? 'Logging out…' : 'Log out'}
           </button>
+          {signOutError && <p className="field__error" role="alert">{signOutError}</p>}
         </div>
       )}
     </div>

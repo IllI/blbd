@@ -13,6 +13,7 @@
     "test:native": "node scripts/test-native-portal.mjs",
     "test:social": "node scripts/test-social-auth.mjs",
     "test:password": "node scripts/test-password-auth.mjs",
+    "test:logout": "node scripts/test-logout.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

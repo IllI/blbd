@@ -70,6 +70,9 @@ settings as a shortcut.
   remains unconfigured. See [auth configuration](webflow/portal-migration/SOCIAL-AUTH.md).
   Preserve these integrations
   until a separately reviewed navigation/auth change replaces them.
+- The isolated beta portal's account-menu logout clears its Supabase session,
+  then returns to `https://blbd.webflow.io/log-in`. A failed sign-out stays in
+  the portal with a retry message. Other environments retain `/login`.
 - Beta admin mail was activated on the shared branch; it is not universally a
   placeholder service. New local setups keep sending disabled and mail keys
   blank. See [ADMIN-PORTAL.md](ADMIN-PORTAL.md) for operational controls.

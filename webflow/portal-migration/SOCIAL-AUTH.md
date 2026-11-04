@@ -9,6 +9,47 @@ are not standing authorization for a new session. See
 
 ## Git evidence and current blocker
 
+### Google configuration verified 2026-11-04
+
+The owner explicitly approved creating **BLBD Sign-In — Beta and Production**
+in the existing Google Cloud project **Hexer / `hexer-8e9f4`** and configuring
+both Supabase projects. The dedicated Web application client is
+`410416010070-0mvdu2suj7phhkiec2ol8k4iat9kdtcr.apps.googleusercontent.com`.
+Its secret is configured directly in Supabase Auth and backed up in Windows
+Credential Manager under `BLBD Google OAuth: sign-in-client`; the downloaded
+plaintext JSON was removed. No secret belongs in git, Webflow or a public env var.
+
+Authorized Google callbacks:
+- `https://hfmjvbjyectxiszutwen.supabase.co/auth/v1/callback` (beta)
+- `https://ihghsacsxvibtwoiyjag.supabase.co/auth/v1/callback` (production)
+
+Authorized JavaScript origins: `https://blbd.webflow.io`,
+`https://blbd-git-feat-admin-portal-illi1s-projects.vercel.app`,
+`https://blbd.life`, and `https://blbd-life.vercel.app`.
+
+Both projects are healthy with Google enabled, the expected client configured,
+email required and nonce checks retained. Production was resumed from its
+paused state. Only its Google provider fields changed; redirect allowlists,
+site URLs, confirmation policy and other auth settings were preserved. No
+production database migration, Webflow publish or Vercel deployment was made.
+The shared Google project's branding/audience settings were not changed.
+
+Live beta readiness now returns `google=true, yahoo=false`. Beta initiation
+issues a first-party PKCE cookie/challenge, reaches the correct Google client
+and beta callback, and Google returns its sign-in prompt without an invalid
+client or redirect-mismatch error. Production's Auth authorize endpoint also
+reaches that client with the production callback. These checks create no users
+and do not prove a real Google account completed login. Existing/new-account
+login, cancellation, role and avatar continuity remain real-user checks in
+[issue #8](https://github.com/IllI/blbd/issues/8). Yahoo remains unconfigured.
+
+The beta UI reads readiness on each visit, so no republish/redeploy is needed
+to enable its existing Google buttons. Production provider setup is prepared;
+the older production portal's button remains subject to its build-time
+`NEXT_PUBLIC_ENABLE_GOOGLE_OAUTH` flag and a separately approved deployment.
+
+### Historical audit
+
 - `d54d275` introduced Google/Facebook UI with optional configuration flags.
 - `af1af69` explicitly recorded Yahoo as a requirement, not a verified provider.
 - `d9842e4` recorded Google/Yahoo as not enabled in the restored Auth backend.
@@ -18,7 +59,7 @@ are not standing authorization for a new session. See
   either project. Beta custom-provider inventory was empty. Neither old Google
   nor Yahoo credentials are recoverable from the tracked implementation.
 
-The new controls are wired, **not enabled sign-in providers**. Do not claim an
+At the time of that audit the controls were wired, **not enabled sign-in providers**. Do not claim an
 end-to-end provider login has passed until the following setup and real account
 tests are complete. No fake client IDs/secrets, provider flags, or bypassed
 email verification are used to make the buttons appear functional.
@@ -66,14 +107,14 @@ code exchanges the code; existing database verification, role and membership
 checks remain the security boundary. Both login and signup use the provider's
 standard sign-in-or-create flow; no custom user/session minting is added.
 
-## Remaining provider setup — beta only
+## Remaining provider setup — Yahoo in beta
 
 Open Supabase project **blbd-beta / `hfmjvbjyectxiszutwen` → Authentication →
-Sign In / Providers**. Do not configure production or paste secrets into chat.
+Sign In / Providers**. The Google exception above was explicitly approved;
+Yahoo work remains beta only. Do not paste secrets into chat.
 
-1. **Google:** enable Google and enter a Web Application OAuth client ID/secret.
-   Register `https://hfmjvbjyectxiszutwen.supabase.co/auth/v1/callback` in that
-   client's authorized redirect URIs. Keep email verification and nonce checks.
+1. **Google:** configured in both projects as recorded above. Preserve the
+   registered callbacks, email requirement and nonce checks.
 2. **Yahoo:** add a **custom OIDC provider** with identifier **`custom:yahoo`**,
    name Yahoo, issuer **`https://api.login.yahoo.com`**, and the Yahoo app's client
    ID/secret. Request `openid`, `email`, `profile`; require email. Copy the exact
@@ -114,7 +155,7 @@ freeform code remains empty and the four unpublished portal draft scripts are
 unchanged. Native group IDs: login `e4ea5403-a500-1ae2-8df8-e4a5843c1f03`,
 signup `6c0b5c5e-110d-d69f-7403-dcadec88653f`.
 
-Live beta readiness returned `google=false, yahoo=false`; both start routes
+During the original installation, live beta readiness returned `google=false, yahoo=false`; both start routes
 returned the explicit `social_setup_required` path with no new auth cookies.
 Unsupported providers return 400. Provider credentials and actual account login
 checks remain tracked in [issue #8](https://github.com/IllI/blbd/issues/8).
@@ -135,6 +176,6 @@ not browser visual QA or a successful account login.
 
 The four unfinished portal pages remain drafts; `/admin/newsletter` still
 returns 404 on Webflow. The existing beta backend portal remains the working
-newsletter surface. Google/Yahoo readiness still returns false for both;
-provider credentials and real end-to-end account tests remain blocked on
-the configuration described above and tracked in issue #8.
+newsletter surface. The original provider-setup blocker is superseded for
+Google by the November 4 verification above. Yahoo setup and real end-to-end
+account tests remain tracked in issue #8.

@@ -55,9 +55,12 @@ Production rollout requires a separately reviewed environment-policy change.
   checkout's production link was not changed. Use the repo-pinned CLI with
   `npx supabase` (the old global CLI cannot parse PostgreSQL 17 config).
   `npx supabase db push --dry-run` confirms the beta migrations are up to date.
-- Auth email confirmation remains required. Google/Facebook login flags are
-  disabled in the new beta until provider credentials are configured for it;
-  no production provider settings were changed.
+- Auth email confirmation remains required. The owner later explicitly approved
+  a dedicated Google client for beta and production. Google provider settings
+  and redirects were verified in both on November 4; beta UI reads actual provider
+  readiness. Yahoo remains unconfigured. See
+  [the auth setup record](webflow/portal-migration/SOCIAL-AUTH.md). This exception
+  does not authorize a production deployment or other production changes.
 - Auth mail can use the signed `/api/auth/send-email` hook, with the Resend key
   kept inside Vercel rather than exported into SMTP configuration. Configure
   `SUPABASE_AUTH_EMAIL_HOOK_SECRET` (Standard Webhooks format) and

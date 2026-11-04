@@ -64,8 +64,11 @@ settings as a shortcut.
   [the migration archive](webflow/portal-migration/README.md). Do not publish,
   expand, delete, or redirect members to those drafts as part of workstation setup.
 - Beta native `/log-in` and `/sign-up` password integration was published and
-  checked on October 26. Google/Yahoo controls exist, but provider setup and
-  successful end-to-end sign-in are not established. Preserve these integrations
+  checked on October 26. On November 4, the dedicated Google client was verified
+  in both Supabase projects under explicit owner approval. Beta Google readiness
+  and redirects pass; real-account sign-in still needs verification. Yahoo
+  remains unconfigured. See [auth configuration](webflow/portal-migration/SOCIAL-AUTH.md).
+  Preserve these integrations
   until a separately reviewed navigation/auth change replaces them.
 - Beta admin mail was activated on the shared branch; it is not universally a
   placeholder service. New local setups keep sending disabled and mail keys
